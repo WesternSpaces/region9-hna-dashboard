@@ -91,11 +91,11 @@ export function CommutingAnalysis({ selectedCounty }: CommutingAnalysisProps) {
 
         {/* Regional Commute Destinations Chart */}
         {commuteData.length > 0 ? (
-          <Card title="Top 15 Work Destinations for Region 9 Residents" highlight>
+          <Card title="Work Location Patterns - All Region 9 Counties" highlight>
             <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded">
               <p className="text-sm text-slate-700">
-                <strong>Regional Workforce Destinations:</strong> This chart shows where Region 9 residents work,
-                aggregated across all counties. Select a specific county to see detailed commuting patterns for that county.
+                <strong>Regional Workforce Patterns:</strong> This chart shows the total number of workers who work in their home county vs. commute outside,
+                aggregated across all Region 9 counties. Select a specific county to see detailed patterns for that county.
               </p>
             </div>
             <ResponsiveContainer width="100%" height={500}>
@@ -207,7 +207,7 @@ export function CommutingAnalysis({ selectedCounty }: CommutingAnalysisProps) {
 
       {/* Commute Destinations Chart */}
       {commuteData.length > 0 ? (
-        <Card title={`Top 10 Work Destinations for ${selectedCounty} Residents`} highlight>
+        <Card title={`Commuting Patterns - ${selectedCounty} Residents`} highlight>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart
               data={commuteData}

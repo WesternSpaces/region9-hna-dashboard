@@ -92,8 +92,8 @@ export function HousingNeeds({ selectedCounty }: HousingNeedsProps) {
   return (
     <Section
       id="housing-needs"
-      title="Section H: Housing Needs Assessment"
-      subtitle="Area Median Income (AMI) distribution and preliminary housing needs calculations"
+      title="Section H: Current and Projected Housing Needs"
+      subtitle="Catch-Up (existing shortage) and Keep-Up (10-year projection) housing needs by AMI"
     >
       {/* Key Stats */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">

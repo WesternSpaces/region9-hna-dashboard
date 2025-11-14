@@ -428,7 +428,18 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "2033": 2413
       }
     },
-    "commuteCounty": [],
+        "commuteCounty": [
+      {
+        "workLocation": "Archuleta County",
+        "workers": 4697,
+        "percentage": 92.3
+      },
+      {
+        "workLocation": "Outside Archuleta County",
+        "workers": 393,
+        "percentage": 7.7
+      }
+    ],
     "yearBuilt": {
       "owner": {
         "": null
@@ -683,16 +694,16 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "sectorId": null,
         "sectorName": "",
         "projections": {
-          "2024": 2139972,
-          "2025": 2152134,
-          "2026": 2157283,
-          "2027": 2169678,
-          "2028": 2188814,
-          "2029": 2211992,
-          "2030": 2239938,
-          "2031": 2267781,
-          "2032": 2289658,
-          "2033": 2306779
+          "2024": 2140,
+          "2025": 2152,
+          "2026": 2157,
+          "2027": 2170,
+          "2028": 2189,
+          "2029": 2212,
+          "2030": 2240,
+          "2031": 2268,
+          "2032": 2290,
+          "2033": 2307
         }
       }
     ],
@@ -836,7 +847,18 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "2033": 239
       }
     },
-    "commuteCounty": [],
+        "commuteCounty": [
+      {
+        "workLocation": "Dolores County",
+        "workers": 405,
+        "percentage": 65.2
+      },
+      {
+        "workLocation": "Outside Dolores County",
+        "workers": 216,
+        "percentage": 34.8
+      }
+    ],
     "yearBuilt": {
       "owner": {
         "": null
@@ -1271,7 +1293,18 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "2033": 8757
       }
     },
-    "commuteCounty": [],
+        "commuteCounty": [
+      {
+        "workLocation": "La Plata County",
+        "workers": 24731,
+        "percentage": 98.5
+      },
+      {
+        "workLocation": "Outside La Plata County",
+        "workers": 372,
+        "percentage": 1.5
+      }
+    ],
     "yearBuilt": {
       "owner": {
         "": null
@@ -1697,7 +1730,18 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "2033": 3944
       }
     },
-    "commuteCounty": [],
+        "commuteCounty": [
+      {
+        "workLocation": "Montezuma County",
+        "workers": 9060,
+        "percentage": 90.7
+      },
+      {
+        "workLocation": "Outside Montezuma County",
+        "workers": 924,
+        "percentage": 9.3
+      }
+    ],
     "yearBuilt": {
       "owner": {
         "": null
@@ -2087,7 +2131,18 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "2033": 85
       }
     },
-    "commuteCounty": [],
+        "commuteCounty": [
+      {
+        "workLocation": "San Juan County",
+        "workers": 295,
+        "percentage": 88.3
+      },
+      {
+        "workLocation": "Outside San Juan County",
+        "workers": 39,
+        "percentage": 11.7
+      }
+    ],
     "yearBuilt": {
       "owner": {
         "": null

@@ -6,7 +6,7 @@ import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { REGION_9_HISTORICAL_DATA } from '@/lib/data/region9-historical';
 import { REGION_9_COMPREHENSIVE_DATA } from '@/lib/data/region9-comprehensive';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Cell } from 'recharts';
 import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
 interface EconomicTrendsProps {
@@ -290,6 +290,23 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
 
     const sortedBrackets = sortBrackets(Object.entries(aggregatedByBracket));
 
+    // Helper function to determine income category color
+    const getIncomeColor = (bracket: string): string => {
+      // Extract numeric value from bracket
+      const match = bracket.match(/\$?([\d,]+)/);
+      if (!match) return '#2563eb'; // Default blue
+
+      const value = parseInt(match[1].replace(/,/g, ''));
+
+      if (value < 35000) {
+        return '#dc2626'; // Red for low income (<$35k)
+      } else if (value < 100000) {
+        return '#2563eb'; // Blue for middle income ($35k-$100k)
+      } else {
+        return '#16a34a'; // Green for high income (>$100k)
+      }
+    };
+
     // Transform to chart format
     return sortedBrackets
       .map(([bracket, households]) => ({
@@ -298,7 +315,9 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
           .replace(' or more', '+')
           .replace('$', '')
           .replace(',000', 'k'),
-        households
+        households,
+        originalBracket: bracket, // Keep original for color determination
+        fill: getIncomeColor(bracket)
       }))
       .filter(d => d.households > 0);
   };
@@ -488,6 +507,9 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                 {selectedCounty && jobsHistoricalData.length === 0 && (
                   <span className="ml-2 text-amber-700"><strong>Note:</strong> Jobs data not available for this county due to small population size.</span>
                 )}
+                {!selectedCounty && (
+                  <span className="ml-2 text-amber-800"><strong>Data Note:</strong> Archuleta County data available through 2020; 2021-2023 data pending SDO updates.</span>
+                )}
               </p>
             </div>
             <p className="text-xs text-slate-500 mt-2">Source: SDO 2023 Vintage Jobs by Sector Estimates</p>
@@ -659,7 +681,11 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                   label={{ value: 'Households', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip formatter={formatTooltip} />
-                <Bar dataKey="households" fill="#2563eb" name="Households" />
+                <Bar dataKey="households" name="Households">
+                  {incomeDistributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">

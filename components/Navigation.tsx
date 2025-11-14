@@ -15,7 +15,7 @@ export function Navigation({ selectedCounty, onCountyChange }: NavigationProps) 
     { label: 'Housing Problems', href: '#problems' },
     { label: 'Commuting', href: '#commuting' },
     { label: 'Housing Quality', href: '#housing-quality' },
-    { label: 'Housing Needs', href: '#needs' },
+    { label: 'Current & Projected Needs', href: '#housing-needs' },
   ];
 
   return (
