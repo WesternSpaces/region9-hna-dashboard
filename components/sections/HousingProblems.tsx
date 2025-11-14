@@ -20,6 +20,16 @@ export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
   const totalCostBurdened30Plus = filteredData.reduce((sum, c) => sum + (c.costBurdened30Plus || 0), 0);
   const totalCostBurdened50Plus = filteredData.reduce((sum, c) => sum + (c.costBurdened50Plus || 0), 0);
 
+  // Calculate weighted average cost burden rates
+  const totalOwnerOccupied = filteredData.reduce((sum, c) => sum + (c.ownerOccupied || 0), 0);
+  const totalRenterOccupied = filteredData.reduce((sum, c) => sum + (c.renterOccupied || 0), 0);
+  const avgOwnerCostBurdenRate = filteredData.length > 0
+    ? filteredData.reduce((sum, c) => sum + (c.ownerCostBurdenRate || 0), 0) / filteredData.length
+    : 0;
+  const avgRenterCostBurdenRate = filteredData.length > 0
+    ? filteredData.reduce((sum, c) => sum + (c.renterCostBurdenRate || 0), 0) / filteredData.length
+    : 0;
+
   // Transform data for Cost Burden Rates (Owner vs Renter comparison)
   const costBurdenRatesData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
@@ -69,9 +79,8 @@ export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
   };
 
   // Calculate percentages for the pie chart
-  const totalHouseholds = REGION_9_AGGREGATE_STATS.totalHouseholds2023;
-  const costBurdenedPct = ((REGION_9_AGGREGATE_STATS.totalCostBurdened30Plus / totalHouseholds) * 100).toFixed(1);
-  const severeBurdenPct = ((REGION_9_AGGREGATE_STATS.totalCostBurdened50Plus / totalHouseholds) * 100).toFixed(1);
+  const costBurdenedPct = totalHouseholds > 0 ? ((totalCostBurdened30Plus / totalHouseholds) * 100).toFixed(1) : '0.0';
+  const severeBurdenPct = totalHouseholds > 0 ? ((totalCostBurdened50Plus / totalHouseholds) * 100).toFixed(1) : '0.0';
 
   return (
     <Section
@@ -83,25 +92,25 @@ export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <StatCard
           label="Cost Burdened Households"
-          value={REGION_9_AGGREGATE_STATS.totalCostBurdened30Plus.toLocaleString()}
+          value={totalCostBurdened30Plus.toLocaleString()}
           subtitle={`${costBurdenedPct}% paying 30%+ of income`}
           trend="down"
         />
         <StatCard
           label="Severely Burdened"
-          value={REGION_9_AGGREGATE_STATS.totalCostBurdened50Plus.toLocaleString()}
+          value={totalCostBurdened50Plus.toLocaleString()}
           subtitle={`${severeBurdenPct}% paying 50%+ of income`}
           trend="down"
         />
         <StatCard
           label="Owner Cost Burden Rate"
-          value={`${REGION_9_AGGREGATE_STATS.regionalOwnerCostBurdenRate.toFixed(1)}%`}
-          subtitle="Regional average"
+          value={`${avgOwnerCostBurdenRate.toFixed(1)}%`}
+          subtitle={selectedCounty || "Regional average"}
         />
         <StatCard
           label="Renter Cost Burden Rate"
-          value={`${REGION_9_AGGREGATE_STATS.regionalRenterCostBurdenRate.toFixed(1)}%`}
-          subtitle="2x higher than owners"
+          value={`${avgRenterCostBurdenRate.toFixed(1)}%`}
+          subtitle={selectedCounty || "2x higher than owners"}
           trend="down"
         />
       </div>
@@ -203,7 +212,7 @@ export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
                 <span>Severely Burdened (50%+)</span>
               </div>
               <span className="font-semibold">
-                {REGION_9_AGGREGATE_STATS.totalCostBurdened50Plus.toLocaleString()} ({severeBurdenPct}%)
+                {totalCostBurdened50Plus.toLocaleString()} ({severeBurdenPct}%)
               </span>
             </div>
           </div>
@@ -222,7 +231,7 @@ export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
-                {REGION_9_COUNTIES_DATA.map((county, idx) => {
+                {filteredData.map((county, idx) => {
                   const gap = county.renterCostBurdenRate && county.ownerCostBurdenRate
                     ? (county.renterCostBurdenRate - county.ownerCostBurdenRate).toFixed(1)
                     : 'N/A';
@@ -266,11 +275,11 @@ export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
         <ul className="space-y-2 text-slate-700">
           <li className="flex items-start">
             <span className="text-red-600 font-bold mr-2">•</span>
-            <span><strong>{REGION_9_AGGREGATE_STATS.totalCostBurdened30Plus.toLocaleString()} households ({costBurdenedPct}%)</strong> in Region 9 are cost burdened, paying 30% or more of their income for housing.</span>
+            <span><strong>{totalCostBurdened30Plus.toLocaleString()} households ({costBurdenedPct}%)</strong> {selectedCounty ? `in ${selectedCounty}` : 'in Region 9'} are cost burdened, paying 30% or more of their income for housing.</span>
           </li>
           <li className="flex items-start">
             <span className="text-red-600 font-bold mr-2">•</span>
-            <span><strong>{REGION_9_AGGREGATE_STATS.totalCostBurdened50Plus.toLocaleString()} households ({severeBurdenPct}%)</strong> are severely cost burdened, paying 50% or more of their income for housing costs.</span>
+            <span><strong>{totalCostBurdened50Plus.toLocaleString()} households ({severeBurdenPct}%)</strong> are severely cost burdened, paying 50% or more of their income for housing costs.</span>
           </li>
           <li className="flex items-start">
             <span className="text-red-600 font-bold mr-2">•</span>
