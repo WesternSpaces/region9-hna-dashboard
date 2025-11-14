@@ -5,7 +5,8 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { REGION_9_HISTORICAL_DATA } from '@/lib/data/region9-historical';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { REGION_9_COMPREHENSIVE_DATA } from '@/lib/data/region9-comprehensive';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
 interface EconomicTrendsProps {
@@ -99,6 +100,56 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
   };
 
   const jobsHistoricalData = prepareJobsHistoricalData();
+
+  // Prepare wages by sector data for current selection
+  const prepareWagesBySectorData = () => {
+    if (selectedCounty) {
+      // Single county - show that county's wage data
+      const countyData = REGION_9_COMPREHENSIVE_DATA.find(c => c.county === selectedCounty);
+      if (!countyData || !countyData.wagesBySector) return [];
+
+      return countyData.wagesBySector
+        .filter(s => s.wage2023 !== null)
+        .sort((a, b) => (b.wage2023 || 0) - (a.wage2023 || 0))
+        .slice(0, 15) // Top 15 sectors
+        .map(sector => ({
+          sector: sector.sectorName.length > 30
+            ? sector.sectorName.substring(0, 27) + '...'
+            : sector.sectorName,
+          fullSectorName: sector.sectorName,
+          wage: sector.wage2023,
+        }));
+    } else {
+      // Regional aggregate - average wages across counties with data
+      const allSectors: { [key: string]: { sum: number; count: number; fullName: string } } = {};
+
+      REGION_9_COMPREHENSIVE_DATA.forEach(county => {
+        county.wagesBySector.forEach(sector => {
+          if (sector.wage2023 !== null) {
+            const key = sector.sectorName;
+            if (!allSectors[key]) {
+              allSectors[key] = { sum: 0, count: 0, fullName: sector.sectorName };
+            }
+            allSectors[key].sum += sector.wage2023;
+            allSectors[key].count += 1;
+          }
+        });
+      });
+
+      return Object.entries(allSectors)
+        .map(([key, data]) => ({
+          sector: data.fullName.length > 30
+            ? data.fullName.substring(0, 27) + '...'
+            : data.fullName,
+          fullSectorName: data.fullName,
+          wage: Math.round(data.sum / data.count),
+        }))
+        .sort((a, b) => (b.wage || 0) - (a.wage || 0))
+        .slice(0, 15); // Top 15 sectors
+    }
+  };
+
+  const wagesBySectorData = prepareWagesBySectorData();
 
   return (
     <Section
@@ -290,6 +341,85 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
               {selectedCounty && (
                 <span className="ml-2">Counties with jobs data: Archuleta, La Plata, and Montezuma.</span>
               )}
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* Wages by Sector - HNA Section IV Requirement */}
+      <Card title={`Median Wages by Sector (2023)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {wagesBySectorData.length > 0 ? (
+          <>
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-900">
+                <strong>HNA Section IV Requirement:</strong> Jobs sorted by annual salary/wage.
+                This data is essential for calculating workforce housing needs by income bracket.
+                {!selectedCounty && <span className="ml-1">Showing regional average wages across all counties.</span>}
+              </p>
+            </div>
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart
+                data={wagesBySectorData}
+                layout="vertical"
+                margin={{ left: 200, right: 30, top: 10, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  domain={[0, 'dataMax']}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="sector"
+                  width={190}
+                  fontSize={11}
+                />
+                <Tooltip
+                  formatter={(value: any) => [`$${typeof value === 'number' ? value.toLocaleString() : value}`, 'Median Wage']}
+                  labelFormatter={(label) => {
+                    const item = wagesBySectorData.find(d => d.sector === label);
+                    return item?.fullSectorName || label;
+                  }}
+                />
+                <Bar dataKey="wage" fill="#059669" name="Median Wage" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3 bg-green-50 border border-green-200 rounded">
+                <p className="text-xs font-semibold text-green-900 mb-1">HIGH WAGE (&gt;$80k)</p>
+                <p className="text-xs text-green-800">
+                  Sectors: {wagesBySectorData.filter(s => s.wage && s.wage > 80000).length} sectors
+                </p>
+                <p className="text-xs text-green-700 mt-1">
+                  Can typically afford market-rate housing
+                </p>
+              </div>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded">
+                <p className="text-xs font-semibold text-amber-900 mb-1">MIDDLE WAGE ($50k-$80k)</p>
+                <p className="text-xs text-amber-800">
+                  Sectors: {wagesBySectorData.filter(s => s.wage && s.wage >= 50000 && s.wage <= 80000).length} sectors
+                </p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Need workforce housing assistance
+                </p>
+              </div>
+              <div className="p-3 bg-red-50 border border-red-200 rounded">
+                <p className="text-xs font-semibold text-red-900 mb-1">LOW WAGE (&lt;$50k)</p>
+                <p className="text-xs text-red-800">
+                  Sectors: {wagesBySectorData.filter(s => s.wage && s.wage < 50000).length} sectors
+                </p>
+                <p className="text-xs text-red-700 mt-1">
+                  Need affordable/subsidized housing
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-4">Source: SDO 2023 Vintage Jobs and Wage Data</p>
+          </>
+        ) : (
+          <div className="p-6 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-amber-900">
+              <strong>No wage data available</strong> {selectedCounty ? `for ${selectedCounty}` : 'for this selection'} due to small population size and SDO reporting thresholds.
             </p>
           </div>
         )}
