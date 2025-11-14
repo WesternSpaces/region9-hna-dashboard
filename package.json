@@ -1,0 +1,35 @@
+{
+  "name": "region9-hna-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Region 9 Housing Needs Assessment Dashboard - SB24-174 Compliance Tool",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "housing",
+    "needs",
+    "assessment",
+    "HNA",
+    "SB24-174",
+    "Colorado"
+  ],
+  "author": "Western Spaces",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.4",
+    "autoprefixer": "^10.4.22",
+    "next": "^16.0.3",
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.4.1",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3"
+  }
+}
