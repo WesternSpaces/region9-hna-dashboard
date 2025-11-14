@@ -9,6 +9,8 @@ import { EconomicTrends } from '@/components/sections/EconomicTrends';
 import { HousingInventory } from '@/components/sections/HousingInventory';
 import { HousingMarketTrends } from '@/components/sections/HousingMarketTrends';
 import { HousingProblems } from '@/components/sections/HousingProblems';
+import { CommutingAnalysis } from '@/components/sections/CommutingAnalysis';
+import { HousingQuality } from '@/components/sections/HousingQuality';
 import { HousingNeeds } from '@/components/sections/HousingNeeds';
 
 export default function Home() {
@@ -26,6 +28,8 @@ export default function Home() {
       <HousingInventory selectedCounty={selectedCounty} />
       <HousingMarketTrends selectedCounty={selectedCounty} />
       <HousingProblems selectedCounty={selectedCounty} />
+      <CommutingAnalysis selectedCounty={selectedCounty} />
+      <HousingQuality selectedCounty={selectedCounty} />
       <HousingNeeds selectedCounty={selectedCounty} />
       <Footer />
     </div>

@@ -13,6 +13,8 @@ export function Navigation({ selectedCounty, onCountyChange }: NavigationProps) 
     { label: 'Housing Inventory', href: '#inventory' },
     { label: 'Market Trends', href: '#market' },
     { label: 'Housing Problems', href: '#problems' },
+    { label: 'Commuting', href: '#commuting' },
+    { label: 'Housing Quality', href: '#housing-quality' },
     { label: 'Housing Needs', href: '#needs' },
   ];
 
