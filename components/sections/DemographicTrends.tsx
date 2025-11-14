@@ -111,7 +111,7 @@ export function DemographicTrends({ selectedCounty }: DemographicTrendsProps) {
         {/* Population Growth Projections */}
         <Card title="Population Growth Projections (2023-2033)">
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={growthProjectionData}>
+            <BarChart data={growthProjectionData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="county"
@@ -123,22 +123,17 @@ export function DemographicTrends({ selectedCounty }: DemographicTrendsProps) {
               <YAxis />
               <Tooltip formatter={formatTooltip} />
               <Legend />
-              <Line
-                type="monotone"
+              <Bar
                 dataKey="2023 Population"
-                stroke="#2563eb"
-                strokeWidth={2}
-                dot={{ r: 4 }}
+                fill="#2563eb"
+                name="2023 Population"
               />
-              <Line
-                type="monotone"
+              <Bar
                 dataKey="2033 Projection"
-                stroke="#16a34a"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={{ r: 4 }}
+                fill="#16a34a"
+                name="2033 Projection"
               />
-            </LineChart>
+            </BarChart>
           </ResponsiveContainer>
           <p className="text-xs text-slate-500 mt-2">Source: SDO 2023 Population Projections</p>
         </Card>

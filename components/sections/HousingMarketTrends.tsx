@@ -162,7 +162,10 @@ export function HousingMarketTrends({ selectedCounty }: HousingMarketTrendsProps
                 height={100}
                 fontSize={12}
               />
-              <YAxis domain={[0, 8]} />
+              <YAxis
+                domain={[0, 8]}
+                tickFormatter={formatRatio}
+              />
               <Tooltip
                 formatter={(value: any, name: string) => {
                   if (name === 'ratio') return formatRatio(value);

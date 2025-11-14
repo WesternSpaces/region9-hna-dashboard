@@ -49,21 +49,6 @@ export function HousingNeeds({ selectedCounty }: HousingNeedsProps) {
     };
   });
 
-  // Projected Housing Gap (2023-2033)
-  const housingGapData = filteredData.map(county => {
-    const projectedNeed = county.households2033Projection && county.households2023
-      ? county.households2033Projection - county.households2023
-      : 0;
-    const currentGap = county.households2023 && county.occupiedUnits
-      ? county.households2023 - county.occupiedUnits
-      : 0;
-
-    return {
-      county: county.county.replace(' County', ''),
-      'Projected Growth Need': projectedNeed,
-      'Current Housing Gap': currentGap,
-    };
-  });
 
   // AMI County Distribution (Stacked)
   const amiByCountyData = filteredData.map(county => ({
@@ -135,6 +120,34 @@ export function HousingNeeds({ selectedCounty }: HousingNeedsProps) {
           subtitle="Households exceeding occupied units"
         />
       </div>
+
+      {/* Key Insights - HNA Requirements */}
+      <Card title="Key Insights: Housing Needs Assessment (HNA Framework Section H)" className="mb-8 bg-blue-50 border-2 border-blue-200">
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Required HNA Outputs:</h4>
+            <ul className="list-disc list-inside space-y-1 text-sm text-slate-700">
+              <li><strong>(II) Housing Needs by Income Level:</strong> {lowIncomePct}% of households are at or below 80% AMI, requiring affordable housing options</li>
+              <li><strong>(II) Housing Needs by Dwelling Type:</strong> Current data shows need for rental, ownership, and specialized units (accessible, visitable, supportive)</li>
+              <li><strong>(III) Number of Households:</strong> {totalCHASHouseholds.toLocaleString()} total households across {displayName}</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Critical Housing Need Indicators:</h4>
+            <ul className="list-disc list-inside space-y-1 text-sm text-slate-700">
+              <li><strong>Low-Income Housing Need:</strong> Over 40% of households earn below 80% AMI, indicating significant need for workforce and affordable housing</li>
+              <li><strong>Very Low-Income Priority:</strong> Households at ≤50% AMI face the most severe affordability challenges and cost burden</li>
+              <li><strong>Projected Growth:</strong> 2023-2033 population projections indicate need for additional housing units to accommodate growth</li>
+              <li><strong>Specialized Units:</strong> Aging population and accessibility requirements suggest need for accessible, visitable, and supportive housing</li>
+            </ul>
+          </div>
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-sm text-amber-900">
+              <strong>Note:</strong> Complete housing needs calculations require analysis of existing shortages (overcrowding, vacancy adjustments) plus projected growth needs. This dashboard presents baseline data; full HNA analysis should be conducted using DOLA guidelines.
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Charts Grid */}
       <div className="grid md:grid-cols-2 gap-6">
@@ -216,32 +229,6 @@ export function HousingNeeds({ selectedCounty }: HousingNeedsProps) {
           <p className="text-xs text-slate-500 mt-2">Source: HUD CHAS 2017-2021</p>
         </Card>
 
-        {/* Projected Housing Gap Analysis */}
-        <Card title="Housing Gap Analysis (2023-2033)" highlight className="md:col-span-2">
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={housingGapData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="county"
-                angle={-45}
-                textAnchor="end"
-                height={100}
-                fontSize={12}
-              />
-              <YAxis />
-              <Tooltip formatter={formatTooltip} />
-              <Legend />
-              <Bar dataKey="Current Housing Gap" fill="#dc2626" name="Current Gap (Households - Occupied Units)" />
-              <Bar dataKey="Projected Growth Need" fill="#2563eb" name="Projected Growth Need (2023-2033)" />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded">
-            <p className="text-sm text-amber-800">
-              <strong>Note:</strong> Current gap represents households already exceeding available occupied units. Projected growth need shows additional housing units required to accommodate population growth through 2033.
-            </p>
-          </div>
-          <p className="text-xs text-slate-500 mt-2">Calculated from SDO 2023 data and ACS 2019-2023</p>
-        </Card>
       </div>
 
       {/* Detailed AMI Table */}

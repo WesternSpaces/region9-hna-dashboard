@@ -91,6 +91,33 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
         />
       </div>
 
+      {/* Key Insights - HNA Requirements */}
+      <Card title="Key Insights: Economic Analysis (HNA Framework Section B)" className="mb-8 bg-blue-50 border-2 border-blue-200">
+        <div className="space-y-3">
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Required HNA Output:</h4>
+            <ul className="list-disc list-inside space-y-1 text-sm text-slate-700">
+              <li><strong>(IV) Jobs Sorted by Annual Salary/Wage:</strong> Current data shows {totalJobs.toLocaleString()} jobs across the region, requiring detailed wage-level analysis for workforce housing planning</li>
+              <li><strong>Jobs-to-Households Ratio:</strong> Understanding employment density helps allocate housing needs across jurisdictions</li>
+              <li><strong>Wage-Housing Affordability Gap:</strong> Median income of ${Math.round(weightedMedianIncome).toLocaleString()} must be compared against housing costs to identify affordability gaps</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Key Economic Indicators for Housing Need:</h4>
+            <ul className="list-disc list-inside space-y-1 text-sm text-slate-700">
+              <li><strong>Wage Distribution:</strong> Jobs should be categorized by wage level (extremely low through middle-income) to match housing affordability</li>
+              <li><strong>Commute Patterns:</strong> Understanding where workers live vs. work informs jurisdiction-level housing allocation</li>
+              <li><strong>Economic Dependencies:</strong> Jobs in one jurisdiction may create housing demand in neighboring areas</li>
+            </ul>
+          </div>
+          <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-sm text-amber-900">
+              <strong>Data Note:</strong> Jobs data unavailable for Dolores and San Juan counties due to small population size. Complete HNA should incorporate all available employment data including commuting patterns.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Charts Grid */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Jobs by County */}
