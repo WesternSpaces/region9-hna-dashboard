@@ -78,9 +78,9 @@ export const REGION_9_HISTORICAL_DATA: CountyHistoricalData[] = [
       "2018": 46,
       "2019": 53,
       "2020": 60,
-      "2021": null,
-      "2022": null,
-      "2023": null
+      "2021": 72,
+      "2022": 74,
+      "2023": 75
 }
   },
   {
