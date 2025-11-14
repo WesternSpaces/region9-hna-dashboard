@@ -13,7 +13,25 @@ interface CommutingAnalysisProps {
 export function CommutingAnalysis({ selectedCounty }: CommutingAnalysisProps) {
   // Prepare commuting data for selected county
   const prepareCommuteData = () => {
-    if (!selectedCounty) return [];
+    if (!selectedCounty) {
+      // Regional overview - aggregate top destinations across all counties
+      const destinationTotals: { [dest: string]: number } = {};
+
+      REGION_9_COMPREHENSIVE_DATA.forEach(county => {
+        if (!county.commuteCounty) return;
+
+        county.commuteCounty.forEach(dest => {
+          const cleanDest = dest.workLocation.replace(' County, Colorado', '').replace(' County', '');
+          destinationTotals[cleanDest] = (destinationTotals[cleanDest] || 0) + dest.workers;
+        });
+      });
+
+      // Return top 15 destinations
+      return Object.entries(destinationTotals)
+        .map(([destination, workers]) => ({ destination, workers }))
+        .sort((a, b) => b.workers - a.workers)
+        .slice(0, 15);
+    }
 
     const countyData = REGION_9_COMPREHENSIVE_DATA.find(c => c.county === selectedCounty);
     if (!countyData || !countyData.commuteCounty) return [];
@@ -32,8 +50,12 @@ export function CommutingAnalysis({ selectedCounty }: CommutingAnalysisProps) {
 
   // Calculate stats
   const totalCommuters = commuteData.reduce((sum, d) => sum + d.workers, 0);
-  const workInCounty = commuteData.find(d => d.destination === selectedCounty?.replace(' County', ''));
-  const workInCountyPct = workInCounty ? workInCounty.percentage : 0;
+  const workInCounty = selectedCounty
+    ? commuteData.find(d => d.destination === selectedCounty.replace(' County', ''))
+    : null;
+  const workInCountyPct: number = (workInCounty && 'percentage' in workInCounty && typeof workInCounty.percentage === 'number')
+    ? workInCounty.percentage
+    : 0;
   const commuteOut = totalCommuters - (workInCounty?.workers || 0);
   const commuteOutPct = totalCommuters > 0 ? ((commuteOut / totalCommuters) * 100).toFixed(1) : '0.0';
 
@@ -46,19 +68,95 @@ export function CommutingAnalysis({ selectedCounty }: CommutingAnalysisProps) {
   };
 
   if (!selectedCounty) {
+    // Regional overview when no county is selected
     return (
       <Section
         id="commuting"
         title="Section F: Commuting Patterns"
-        subtitle="Where residents work - regional workforce dynamics"
+        subtitle="Where Region 9 residents work - regional workforce dynamics"
       >
-        <Card title="Select a County" className="text-center py-12">
-          <p className="text-slate-600">
-            Please select a county from the filter above to view commuting patterns and workforce flow analysis.
-          </p>
-          <p className="text-sm text-slate-500 mt-4">
-            Commuting data shows where residents work, helping identify jobs-housing imbalances and inform jurisdiction-level housing allocation.
-          </p>
+        {/* HNA Context */}
+        <Card title="Regional Commuting Overview" className="mb-8 bg-blue-50 border-2 border-blue-200">
+          <div className="space-y-3">
+            <p className="text-sm text-slate-700">
+              <strong>Understanding Workforce Flows:</strong> Commuting patterns reveal where Region 9 residents work,
+              helping identify jobs-housing imbalances and regional economic connections.
+            </p>
+            <p className="text-sm text-slate-700">
+              <strong>HNA Application:</strong> Understanding regional commute patterns helps allocate housing needs across jurisdictions
+              and coordinate workforce housing development to reduce transportation burdens.
+            </p>
+          </div>
+        </Card>
+
+        {/* Regional Commute Destinations Chart */}
+        {commuteData.length > 0 ? (
+          <Card title="Top 15 Work Destinations for Region 9 Residents" highlight>
+            <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded">
+              <p className="text-sm text-slate-700">
+                <strong>Regional Workforce Destinations:</strong> This chart shows where Region 9 residents work,
+                aggregated across all counties. Select a specific county to see detailed commuting patterns for that county.
+              </p>
+            </div>
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart
+                data={commuteData}
+                layout="vertical"
+                margin={{ left: 150, right: 30, top: 10, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" tickFormatter={(value) => value.toLocaleString()} />
+                <YAxis
+                  type="category"
+                  dataKey="destination"
+                  width={140}
+                  fontSize={12}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Bar dataKey="workers" fill="#3b82f6" name="Workers" />
+              </BarChart>
+            </ResponsiveContainer>
+            <p className="text-xs text-slate-500 mt-4">
+              Source: ACS 2019-2023 Commute County Data (aggregated across all Region 9 counties)
+            </p>
+            <p className="text-xs text-slate-600 mt-2">
+              <strong>Total Regional Commuters:</strong> {totalCommuters.toLocaleString()} workers tracked across all origin counties.
+              Select a county to see detailed commuting breakdowns and in-county vs. out-county percentages.
+            </p>
+          </Card>
+        ) : (
+          <Card title="No Regional Commuting Data Available">
+            <p className="text-slate-600">
+              Commuting pattern data is not available for the region.
+            </p>
+          </Card>
+        )}
+
+        {/* Key Insights */}
+        <Card title="Key Regional Insights" className="mt-6" highlight>
+          <ul className="space-y-2 text-slate-700">
+            <li className="flex items-start">
+              <span className="text-blue-600 font-bold mr-2">•</span>
+              <span>
+                <strong>Regional Workforce Integration:</strong> The chart reveals economic connections between Region 9 and neighboring areas,
+                showing which employment centers attract Region 9 residents.
+              </span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-amber-600 font-bold mr-2">•</span>
+              <span>
+                <strong>Jobs-Housing Balance:</strong> Significant commuting to other counties suggests potential jobs-housing imbalances
+                that could be addressed through coordinated workforce housing development.
+              </span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-green-600 font-bold mr-2">•</span>
+              <span>
+                <strong>Next Step:</strong> Select a specific county to see detailed commuting patterns, including the percentage
+                of residents who work locally vs. commute out, and top destination counties.
+              </span>
+            </li>
+          </ul>
         </Card>
       </Section>
     );

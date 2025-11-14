@@ -68,7 +68,7 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
     return value;
   };
 
-  // Prepare historical jobs trend data for single county or regional aggregate
+  // Prepare historical jobs trend data for single county or all counties
   const prepareJobsHistoricalData = () => {
     if (selectedCounty) {
       // Single county - show that county's historical trend
@@ -81,25 +81,50 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
 
       return years.map(year => ({
         year: parseInt(year),
-        Jobs: countyHistorical.jobs[year],
-      })).filter(d => d.Jobs !== null);
+        [selectedCounty.replace(' County', '')]: countyHistorical.jobs[year],
+      })).filter(d => d[selectedCounty.replace(' County', '')] !== null);
     } else {
-      // Regional aggregate - sum all counties
+      // Show all counties as separate lines
       const years = Array.from({length: 11}, (_, i) => 2013 + i); // 2013-2023
       return years.map(year => {
         const yearStr = year.toString();
-        const totalJobs = REGION_9_HISTORICAL_DATA.reduce((sum, county) =>
-          sum + (county.jobs[yearStr] || 0), 0
-        );
-        return {
-          year,
-          Jobs: totalJobs || null,
-        };
-      }).filter(d => d.Jobs !== null && d.Jobs > 0);
+        const dataPoint: any = { year };
+
+        // Add each county's jobs data as a separate field
+        REGION_9_HISTORICAL_DATA.forEach(county => {
+          const countyName = county.county.replace(' County', '');
+          const jobs = county.jobs[yearStr];
+          if (jobs !== null && jobs !== undefined) {
+            dataPoint[countyName] = jobs;
+          }
+        });
+
+        return dataPoint;
+      }).filter(d => {
+        // Keep year if at least one county has data
+        const countyKeys = Object.keys(d).filter(k => k !== 'year');
+        return countyKeys.some(k => d[k] !== null && d[k] !== undefined);
+      });
     }
   };
 
   const jobsHistoricalData = prepareJobsHistoricalData();
+
+  // Get list of counties with jobs data for rendering multiple lines
+  const countiesWithJobsData = selectedCounty
+    ? [selectedCounty.replace(' County', '')]
+    : REGION_9_HISTORICAL_DATA
+        .filter(c => Object.values(c.jobs).some(v => v !== null && v !== undefined))
+        .map(c => c.county.replace(' County', ''));
+
+  // Color mapping for counties
+  const countyColors: { [key: string]: string } = {
+    'Archuleta': '#3b82f6',  // blue
+    'Dolores': '#8b5cf6',     // purple
+    'La Plata': '#10b981',    // green
+    'Montezuma': '#f59e0b',   // amber
+    'San Juan': '#ef4444',    // red
+  };
 
   // Prepare wages by sector data for current selection
   const prepareWagesBySectorData = () => {
@@ -151,74 +176,73 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
 
   const wagesBySectorData = prepareWagesBySectorData();
 
-  // Prepare job projections by sector data
+  // Prepare total job projections by county (all sectors aggregated)
   const prepareJobProjectionsData = () => {
+    const years = Array.from({length: 10}, (_, i) => 2024 + i);
+
     if (selectedCounty) {
-      // Single county
+      // Single county - show only that county's total job projections
       const countyData = REGION_9_COMPREHENSIVE_DATA.find(c => c.county === selectedCounty);
       if (!countyData || !countyData.jobProjections) return [];
 
-      // Get top sectors and their projections
-      const topSectors = countyData.jobProjections
-        .filter(s => s.projections['2033'] !== null)
-        .sort((a, b) => (b.projections['2033'] || 0) - (a.projections['2033'] || 0))
-        .slice(0, 10); // Top 10 sectors
+      const countyName = selectedCounty.replace(' County', '');
 
-      // Transform to time-series format
-      const years = Array.from({length: 10}, (_, i) => 2024 + i);
       return years.map(year => {
+        const yearStr = year.toString();
         const dataPoint: any = { year };
-        topSectors.forEach(sector => {
-          const shortName = sector.sectorName.length > 20
-            ? sector.sectorName.substring(0, 17) + '...'
-            : sector.sectorName;
-          dataPoint[shortName] = sector.projections[year.toString()];
+
+        // Aggregate all sectors for this county
+        let totalJobs = 0;
+        let hasData = false;
+        countyData.jobProjections.forEach(sector => {
+          const jobs = sector.projections[yearStr];
+          if (jobs !== null && jobs !== undefined) {
+            totalJobs += jobs;
+            hasData = true;
+          }
         });
+
+        dataPoint[countyName] = hasData ? totalJobs : null;
         return dataPoint;
       });
     } else {
-      // Regional aggregate - sum all counties
-      const allProjections: { [sector: string]: { [year: string]: number } } = {};
+      // Show all counties as separate lines
+      return years.map(year => {
+        const yearStr = year.toString();
+        const dataPoint: any = { year };
 
-      REGION_9_COMPREHENSIVE_DATA.forEach(county => {
-        county.jobProjections.forEach(sector => {
-          if (!allProjections[sector.sectorName]) {
-            allProjections[sector.sectorName] = {};
-          }
-          Object.keys(sector.projections).forEach(year => {
-            if (sector.projections[year] !== null) {
-              allProjections[sector.sectorName][year] =
-                (allProjections[sector.sectorName][year] || 0) + sector.projections[year]!;
+        REGION_9_COMPREHENSIVE_DATA.forEach(county => {
+          const countyName = county.county.replace(' County', '');
+
+          // Aggregate all sectors for this county and year
+          let totalJobs = 0;
+          let hasData = false;
+          county.jobProjections.forEach(sector => {
+            const jobs = sector.projections[yearStr];
+            if (jobs !== null && jobs !== undefined) {
+              totalJobs += jobs;
+              hasData = true;
             }
           });
-        });
-      });
 
-      // Get top 10 sectors by 2033 projection
-      const topSectors = Object.entries(allProjections)
-        .filter(([_, proj]) => proj['2033'])
-        .sort((a, b) => (b[1]['2033'] || 0) - (a[1]['2033'] || 0))
-        .slice(0, 10);
-
-      // Transform to time-series
-      const years = Array.from({length: 10}, (_, i) => 2024 + i);
-      return years.map(year => {
-        const dataPoint: any = { year };
-        topSectors.forEach(([sectorName, projections]) => {
-          const shortName = sectorName.length > 20
-            ? sectorName.substring(0, 17) + '...'
-            : sectorName;
-          dataPoint[shortName] = projections[year.toString()] || null;
+          if (hasData) {
+            dataPoint[countyName] = totalJobs;
+          }
         });
+
         return dataPoint;
       });
     }
   };
 
   const jobProjectionsData = prepareJobProjectionsData();
-  const jobProjectionsSectors = jobProjectionsData.length > 0
-    ? Object.keys(jobProjectionsData[0]).filter(k => k !== 'year')
-    : [];
+
+  // Get list of counties with job projection data
+  const countiesWithProjectionsData = selectedCounty
+    ? [selectedCounty.replace(' County', '')]
+    : REGION_9_COMPREHENSIVE_DATA
+        .filter(c => c.jobProjections && c.jobProjections.length > 0)
+        .map(c => c.county.replace(' County', ''));
 
   // Prepare income distribution trends data
   const prepareIncomeDistributionData = () => {
@@ -228,55 +252,58 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
 
     if (countyDataList.length === 0) return [];
 
-    // Aggregate income data across counties and periods
-    const aggregatedByBracket: { [bracket: string]: { [period: string]: number } } = {};
+    // Income categories have a nested structure with empty string as key
+    // Each county has incomeCategories[""] with income brackets as keys
+    // The data has actual bracket names (e.g. "$10,000 to $14,999") mixed with
+    // "Unnamed" columns and metadata like "GEOID" and "Total Households"
+
+    const aggregatedByBracket: { [bracket: string]: number } = {};
 
     countyDataList.forEach(county => {
-      Object.entries(county.incomeCategories || {}).forEach(([bracket, periods]: [string, any]) => {
-        if (bracket === 'Total' || !periods) return;
+      const incomeData = county.incomeCategories?.[""] || {};
 
-        if (!aggregatedByBracket[bracket]) {
-          aggregatedByBracket[bracket] = {};
+      Object.entries(incomeData).forEach(([key, value]: [string, any]) => {
+        // Filter out non-bracket data
+        if (key.startsWith('Unnamed') ||
+            key === 'GEOID' ||
+            key === 'Total Households' ||
+            key === '' ||
+            typeof value !== 'number') {
+          return;
         }
 
-        Object.entries(periods).forEach(([period, value]: [string, any]) => {
-          if (typeof value === 'number') {
-            aggregatedByBracket[bracket][period] =
-              (aggregatedByBracket[bracket][period] || 0) + value;
-          }
-        });
+        // Accumulate across counties
+        aggregatedByBracket[key] = (aggregatedByBracket[key] || 0) + value;
       });
     });
 
-    // Get all available periods and sort them
-    const allPeriods = new Set<string>();
-    Object.values(aggregatedByBracket).forEach(periods => {
-      Object.keys(periods).forEach(period => allPeriods.add(period));
-    });
-    const sortedPeriods = Array.from(allPeriods).sort();
-
-    // Take the most recent 3 periods if available
-    const recentPeriods = sortedPeriods.slice(-3);
-
-    // Transform to chart format - one bar per bracket showing multiple periods
-    return Object.entries(aggregatedByBracket)
-      .map(([bracket, periods]) => {
-        const dataPoint: any = { bracket: bracket.replace('Less than', '<').replace('or more', '+') };
-        recentPeriods.forEach(period => {
-          dataPoint[period] = periods[period] || 0;
-        });
-        return dataPoint;
-      })
-      .filter(d => {
-        // Only include brackets that have data
-        return recentPeriods.some(p => d[p] > 0);
+    // Sort income brackets by their lower bound
+    const sortBrackets = (brackets: [string, number][]) => {
+      return brackets.sort((a, b) => {
+        const getMin = (bracket: string) => {
+          const match = bracket.match(/\$?([\d,]+)/);
+          return match ? parseInt(match[1].replace(/,/g, '')) : 0;
+        };
+        return getMin(a[0]) - getMin(b[0]);
       });
+    };
+
+    const sortedBrackets = sortBrackets(Object.entries(aggregatedByBracket));
+
+    // Transform to chart format
+    return sortedBrackets
+      .map(([bracket, households]) => ({
+        bracket: bracket
+          .replace('Less than ', '<')
+          .replace(' or more', '+')
+          .replace('$', '')
+          .replace(',000', 'k'),
+        households
+      }))
+      .filter(d => d.households > 0);
   };
 
   const incomeDistributionData = prepareIncomeDistributionData();
-  const incomePeriods = incomeDistributionData.length > 0
-    ? Object.keys(incomeDistributionData[0]).filter(k => k !== 'bracket')
-    : [];
 
   return (
     <Section
@@ -439,21 +466,25 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                 />
                 <Tooltip formatter={formatTooltip} />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="Jobs"
-                  stroke="#16a34a"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                  name="Jobs (hundreds)"
-                  connectNulls
-                />
+                {countiesWithJobsData.map(county => (
+                  <Line
+                    key={county}
+                    type="monotone"
+                    dataKey={county}
+                    stroke={countyColors[county] || '#6b7280'}
+                    strokeWidth={selectedCounty ? 3 : 2}
+                    dot={{ r: selectedCounty ? 4 : 3 }}
+                    name={`${county} (hundreds)`}
+                    connectNulls
+                  />
+                ))}
               </LineChart>
             </ResponsiveContainer>
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
               <p className="text-sm text-blue-900">
                 <strong>Historical Jobs Data (2013-2023):</strong> SDO actual estimates from Jobs by Sector data.
                 {selectedCounty && ` Showing ${selectedCounty} specific employment trends over time.`}
+                {!selectedCounty && ` Showing all ${countiesWithJobsData.length} counties with available jobs data as separate lines for comparison.`}
                 {selectedCounty && jobsHistoricalData.length === 0 && (
                   <span className="ml-2 text-amber-700"><strong>Note:</strong> Jobs data not available for this county due to small population size.</span>
                 )}
@@ -552,14 +583,14 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
         )}
       </Card>
 
-      {/* Job Projections by Sector (2024-2033) */}
-      <Card title={`Job Projections by Sector (2024-2033)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
-        {jobProjectionsData.length > 0 && jobProjectionsSectors.length > 0 ? (
+      {/* Total Job Projections by County (2024-2033) */}
+      <Card title={`Total Job Projections (2024-2033)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {jobProjectionsData.length > 0 && countiesWithProjectionsData.length > 0 ? (
           <>
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
               <p className="text-sm text-blue-900">
-                <strong>Future Workforce Composition:</strong> Understanding which sectors will grow helps plan for future housing needs.
-                Top 10 sectors by projected 2033 employment shown.
+                <strong>Future Employment Growth:</strong> Total job projections across all sectors, showing expected employment growth through 2033.
+                {!selectedCounty && <span className="ml-1">Showing all {countiesWithProjectionsData.length} counties with available projections data as separate lines for comparison.</span>}
               </p>
             </div>
             <ResponsiveContainer width="100%" height={400}>
@@ -570,27 +601,28 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                   label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
                 />
                 <YAxis
-                  label={{ value: 'Jobs (hundreds)', angle: -90, position: 'insideLeft' }}
+                  label={{ value: 'Total Jobs (hundreds)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip formatter={formatTooltip} />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-                {jobProjectionsSectors.slice(0, 5).map((sector, idx) => (
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                {countiesWithProjectionsData.map(county => (
                   <Line
-                    key={sector}
+                    key={county}
                     type="monotone"
-                    dataKey={sector}
-                    stroke={`hsl(${idx * 72}, 70%, 50%)`}
-                    strokeWidth={2}
-                    dot={{ r: 2 }}
+                    dataKey={county}
+                    stroke={countyColors[county] || '#6b7280'}
+                    strokeWidth={selectedCounty ? 3 : 2}
+                    dot={{ r: selectedCounty ? 4 : 3 }}
+                    name={`${county} (hundreds)`}
                     connectNulls
                   />
                 ))}
               </LineChart>
             </ResponsiveContainer>
-            <p className="text-xs text-slate-500 mt-4">Source: SDO 2023 Vintage Job Projections by Sector</p>
+            <p className="text-xs text-slate-500 mt-4">Source: SDO 2023 Vintage Job Projections (all sectors aggregated)</p>
             <p className="text-xs text-slate-600 mt-2">
-              <strong>Note:</strong> Showing top 5 of {jobProjectionsSectors.length} projected sectors for clarity.
-              Future housing demand will be driven by growth in these employment sectors.
+              <strong>Note:</strong> Projections aggregate all employment sectors to show total expected job growth.
+              Future housing demand will be driven by overall employment growth trends.
             </p>
           </>
         ) : (
@@ -602,14 +634,14 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
         )}
       </Card>
 
-      {/* Income Distribution Trends */}
-      <Card title={`Income Distribution Trends${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
-        {incomeDistributionData.length > 0 && incomePeriods.length > 0 ? (
+      {/* Income Distribution */}
+      <Card title={`Household Income Distribution${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {incomeDistributionData.length > 0 ? (
           <>
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
               <p className="text-sm text-blue-900">
-                <strong>Income Inequality Trends:</strong> Comparing household income distribution across {incomePeriods.length} time periods.
-                Shows whether middle class is growing/shrinking and if income polarization is increasing.
+                <strong>Income Distribution Analysis:</strong> Household income brackets showing the distribution of households across income levels.
+                This data helps identify housing affordability gaps and workforce housing needs across different income cohorts.
               </p>
             </div>
             <ResponsiveContainer width="100%" height={400}>
@@ -619,22 +651,15 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                   dataKey="bracket"
                   angle={-45}
                   textAnchor="end"
-                  height={100}
+                  height={120}
                   fontSize={10}
+                  interval={0}
                 />
                 <YAxis
                   label={{ value: 'Households', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip formatter={formatTooltip} />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                {incomePeriods.map((period, idx) => (
-                  <Bar
-                    key={period}
-                    dataKey={period}
-                    fill={`hsl(${idx * 120}, 60%, 50%)`}
-                    name={`ACS ${period}`}
-                  />
-                ))}
+                <Bar dataKey="households" fill="#2563eb" name="Households" />
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -657,14 +682,14 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                 </p>
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-4">Source: ACS Income Categories (multiple 5-year periods)</p>
+            <p className="text-xs text-slate-500 mt-4">Source: ACS 2019-2023 Income Categories</p>
             <p className="text-xs text-slate-600 mt-2">
-              <strong>Analysis:</strong> Track whether income distribution is becoming more polarized (growing extremes, shrinking middle)
-              or more equal over time. Growing low-income share indicates increasing housing affordability crisis.
+              <strong>Analysis:</strong> Income distribution reveals housing affordability challenges.
+              Higher concentrations in lower brackets indicate greater need for affordable and workforce housing programs.
             </p>
           </>
         ) : (
-          <p className="text-slate-600">No income distribution trend data available for this selection.</p>
+          <p className="text-slate-600">No income distribution data available for this selection.</p>
         )}
       </Card>
 
