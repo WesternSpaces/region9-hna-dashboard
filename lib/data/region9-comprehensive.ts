@@ -440,30 +440,126 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "percentage": 7.7
       }
     ],
-    "yearBuilt": {
-      "owner": {
-        "": null
-      },
-      "renter": {
-        "": null
-      },
-      "total": {
-        "": null
-      }
+    "yearBuilt":     {
+        "2020 or later": {
+            "owner": null,
+            "renter": null,
+            "total": null
+        },
+        "2010 to 2019": {
+            "owner": 36,
+            "renter": 24,
+            "total": 60
+        },
+        "2000 to 2009": {
+            "owner": 1163,
+            "renter": 336,
+            "total": 1499
+        },
+        "1990 to 1999": {
+            "owner": 908,
+            "renter": 231,
+            "total": 1139
+        },
+        "1980 to 1989": {
+            "owner": 678,
+            "renter": 289,
+            "total": 967
+        },
+        "1970 to 1979": {
+            "owner": 592,
+            "renter": 234,
+            "total": 826
+        },
+        "1960 to 1969": {
+            "owner": 102,
+            "renter": 36,
+            "total": 138
+        },
+        "1950 to 1959": {
+            "owner": 37,
+            "renter": 32,
+            "total": 69
+        },
+        "1940 to 1949": {
+            "owner": 28,
+            "renter": 60,
+            "total": 88
+        },
+        "1939 or earlier": {
+            "owner": 54,
+            "renter": 41,
+            "total": 95
+        }
     },
-    "overcrowding": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
+    "overcrowding":     {
+        "Less than 1 person per room": {
+            "owner": 2023,
+            "renter": 1325,
+            "total": 2344
+        },
+        "1 to 2 people per room": {
+            "owner": 56,
+            "renter": 6,
+            "total": 62
+        },
+        "More than 2 people per room": {
+            "owner": 8,
+            "renter": null,
+            "total": 8
+        }
     },
-    "unitTypes": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
+    "unitTypes":     {
+        "1, detached": {
+            "owner": 3025,
+            "renter": 749,
+            "total": 3774
+        },
+        "1, attached": {
+            "owner": 169,
+            "renter": 35,
+            "total": 204
+        },
+        "2": {
+            "owner": 0,
+            "renter": 41,
+            "total": 41
+        },
+        "3 or 4": {
+            "owner": 5,
+            "renter": 79,
+            "total": 84
+        },
+        "5 to 9": {
+            "owner": 15,
+            "renter": 106,
+            "total": 121
+        },
+        "10 to 19": {
+            "owner": 0,
+            "renter": 52,
+            "total": 52
+        },
+        "20 to 49": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "50 or more": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "Mobile home": {
+            "owner": 355,
+            "renter": 218,
+            "total": 573
+        },
+        "Boat, RV, van, etc.": {
+            "owner": 29,
+            "renter": 3,
+            "total": 32
+        }
     },
     "incomeCategories": {
       "": {
@@ -859,30 +955,110 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "percentage": 34.8
       }
     ],
-    "yearBuilt": {
-      "owner": {
-        "": null
-      },
-      "renter": {
-        "": null
-      },
-      "total": {
-        "": null
-      }
+    "yearBuilt":     {
+        "2020 or later": {
+            "owner": null,
+            "renter": null,
+            "total": null
+        },
+        "2010 to 2019": {
+            "owner": 5,
+            "renter": 0,
+            "total": 5
+        },
+        "2000 to 2009": {
+            "owner": 47,
+            "renter": 18,
+            "total": 65
+        },
+        "1990 to 1999": {
+            "owner": 162,
+            "renter": 7,
+            "total": 169
+        },
+        "1980 to 1989": {
+            "owner": 43,
+            "renter": 2,
+            "total": 45
+        },
+        "1970 to 1979": {
+            "owner": 92,
+            "renter": 37,
+            "total": 129
+        },
+        "1960 to 1969": {
+            "owner": 59,
+            "renter": 15,
+            "total": 74
+        },
+        "1950 to 1959": {
+            "owner": 74,
+            "renter": 26,
+            "total": 100
+        },
+        "1940 to 1949": {
+            "owner": 82,
+            "renter": 30,
+            "total": 112
+        },
+        "1939 or earlier": {
+            "owner": 66,
+            "renter": 15,
+            "total": 81
+        }
     },
-    "overcrowding": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
-    },
-    "unitTypes": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
+    "overcrowding":     {},
+    "unitTypes":     {
+        "1, detached": {
+            "owner": 495,
+            "renter": 112,
+            "total": 607
+        },
+        "1, attached": {
+            "owner": 9,
+            "renter": 0,
+            "total": 9
+        },
+        "2": {
+            "owner": 0,
+            "renter": 10,
+            "total": 10
+        },
+        "3 or 4": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "5 to 9": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "10 to 19": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "20 to 49": {
+            "owner": 0,
+            "renter": 6,
+            "total": 6
+        },
+        "50 or more": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "Mobile home": {
+            "owner": 123,
+            "renter": 22,
+            "total": 145
+        },
+        "Boat, RV, van, etc.": {
+            "owner": 3,
+            "renter": 0,
+            "total": 3
+        }
     },
     "incomeCategories": {
       "": {
@@ -1305,30 +1481,110 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "percentage": 1.5
       }
     ],
-    "yearBuilt": {
-      "owner": {
-        "": null
-      },
-      "renter": {
-        "": null
-      },
-      "total": {
-        "": null
-      }
+    "yearBuilt":     {
+        "2020 or later": {
+            "owner": null,
+            "renter": null,
+            "total": null
+        },
+        "2010 to 2019": {
+            "owner": 111,
+            "renter": 31,
+            "total": 142
+        },
+        "2000 to 2009": {
+            "owner": 3458,
+            "renter": 1199,
+            "total": 4657
+        },
+        "1990 to 1999": {
+            "owner": 3162,
+            "renter": 1113,
+            "total": 4275
+        },
+        "1980 to 1989": {
+            "owner": 2211,
+            "renter": 1128,
+            "total": 3339
+        },
+        "1970 to 1979": {
+            "owner": 1986,
+            "renter": 1403,
+            "total": 3389
+        },
+        "1960 to 1969": {
+            "owner": 737,
+            "renter": 582,
+            "total": 1319
+        },
+        "1950 to 1959": {
+            "owner": 945,
+            "renter": 441,
+            "total": 1386
+        },
+        "1940 to 1949": {
+            "owner": 414,
+            "renter": 280,
+            "total": 694
+        },
+        "1939 or earlier": {
+            "owner": 908,
+            "renter": 838,
+            "total": 1746
+        }
     },
-    "overcrowding": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
-    },
-    "unitTypes": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
+    "overcrowding":     {},
+    "unitTypes":     {
+        "1, detached": {
+            "owner": 10636,
+            "renter": 2957,
+            "total": 13593
+        },
+        "1, attached": {
+            "owner": 783,
+            "renter": 543,
+            "total": 1326
+        },
+        "2": {
+            "owner": 55,
+            "renter": 503,
+            "total": 558
+        },
+        "3 or 4": {
+            "owner": 115,
+            "renter": 548,
+            "total": 663
+        },
+        "5 to 9": {
+            "owner": 260,
+            "renter": 633,
+            "total": 893
+        },
+        "10 to 19": {
+            "owner": 84,
+            "renter": 422,
+            "total": 506
+        },
+        "20 to 49": {
+            "owner": 38,
+            "renter": 370,
+            "total": 408
+        },
+        "50 or more": {
+            "owner": 109,
+            "renter": 151,
+            "total": 260
+        },
+        "Mobile home": {
+            "owner": 1793,
+            "renter": 888,
+            "total": 2681
+        },
+        "Boat, RV, van, etc.": {
+            "owner": 59,
+            "renter": 0,
+            "total": 59
+        }
     },
     "incomeCategories": {
       "": {
@@ -1742,30 +1998,110 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "percentage": 9.3
       }
     ],
-    "yearBuilt": {
-      "owner": {
-        "": null
-      },
-      "renter": {
-        "": null
-      },
-      "total": {
-        "": null
-      }
+    "yearBuilt":     {
+        "2020 or later": {
+            "owner": null,
+            "renter": null,
+            "total": null
+        },
+        "2010 to 2019": {
+            "owner": 62,
+            "renter": 15,
+            "total": 77
+        },
+        "2000 to 2009": {
+            "owner": 1494,
+            "renter": 314,
+            "total": 1808
+        },
+        "1990 to 1999": {
+            "owner": 1385,
+            "renter": 508,
+            "total": 1893
+        },
+        "1980 to 1989": {
+            "owner": 1205,
+            "renter": 552,
+            "total": 1757
+        },
+        "1970 to 1979": {
+            "owner": 1255,
+            "renter": 622,
+            "total": 1877
+        },
+        "1960 to 1969": {
+            "owner": 437,
+            "renter": 241,
+            "total": 678
+        },
+        "1950 to 1959": {
+            "owner": 763,
+            "renter": 418,
+            "total": 1181
+        },
+        "1940 to 1949": {
+            "owner": 241,
+            "renter": 132,
+            "total": 373
+        },
+        "1939 or earlier": {
+            "owner": 697,
+            "renter": 347,
+            "total": 1044
+        }
     },
-    "overcrowding": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
-    },
-    "unitTypes": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
+    "overcrowding":     {},
+    "unitTypes":     {
+        "1, detached": {
+            "owner": 5773,
+            "renter": 1558,
+            "total": 7331
+        },
+        "1, attached": {
+            "owner": 111,
+            "renter": 77,
+            "total": 188
+        },
+        "2": {
+            "owner": 28,
+            "renter": 178,
+            "total": 206
+        },
+        "3 or 4": {
+            "owner": 0,
+            "renter": 290,
+            "total": 290
+        },
+        "5 to 9": {
+            "owner": 19,
+            "renter": 240,
+            "total": 259
+        },
+        "10 to 19": {
+            "owner": 27,
+            "renter": 56,
+            "total": 83
+        },
+        "20 to 49": {
+            "owner": 0,
+            "renter": 45,
+            "total": 45
+        },
+        "50 or more": {
+            "owner": 0,
+            "renter": 14,
+            "total": 14
+        },
+        "Mobile home": {
+            "owner": 1549,
+            "renter": 691,
+            "total": 2240
+        },
+        "Boat, RV, van, etc.": {
+            "owner": 32,
+            "renter": 0,
+            "total": 32
+        }
     },
     "incomeCategories": {
       "": {
@@ -2143,30 +2479,110 @@ export const REGION_9_COMPREHENSIVE_DATA: CountyComprehensiveData[] =
         "percentage": 11.7
       }
     ],
-    "yearBuilt": {
-      "owner": {
-        "": null
-      },
-      "renter": {
-        "": null
-      },
-      "total": {
-        "": null
-      }
+    "yearBuilt":     {
+        "2020 or later": {
+            "owner": null,
+            "renter": null,
+            "total": null
+        },
+        "2010 to 2019": {
+            "owner": 6,
+            "renter": 0,
+            "total": 6
+        },
+        "2000 to 2009": {
+            "owner": 24,
+            "renter": 0,
+            "total": 24
+        },
+        "1990 to 1999": {
+            "owner": 19,
+            "renter": 0,
+            "total": 19
+        },
+        "1980 to 1989": {
+            "owner": 37,
+            "renter": 8,
+            "total": 45
+        },
+        "1970 to 1979": {
+            "owner": 13,
+            "renter": 24,
+            "total": 37
+        },
+        "1960 to 1969": {
+            "owner": 0,
+            "renter": 11,
+            "total": 11
+        },
+        "1950 to 1959": {
+            "owner": 6,
+            "renter": 12,
+            "total": 18
+        },
+        "1940 to 1949": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "1939 or earlier": {
+            "owner": 87,
+            "renter": 74,
+            "total": 161
+        }
     },
-    "overcrowding": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
-    },
-    "unitTypes": {
-      "": {
-        "owner": null,
-        "renter": null,
-        "total": null
-      }
+    "overcrowding":     {},
+    "unitTypes":     {
+        "1, detached": {
+            "owner": 132,
+            "renter": 79,
+            "total": 211
+        },
+        "1, attached": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "2": {
+            "owner": 3,
+            "renter": 13,
+            "total": 16
+        },
+        "3 or 4": {
+            "owner": 23,
+            "renter": 16,
+            "total": 39
+        },
+        "5 to 9": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "10 to 19": {
+            "owner": 0,
+            "renter": 21,
+            "total": 21
+        },
+        "20 to 49": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        },
+        "50 or more": {
+            "owner": 10,
+            "renter": 0,
+            "total": 10
+        },
+        "Mobile home": {
+            "owner": 24,
+            "renter": 0,
+            "total": 24
+        },
+        "Boat, RV, van, etc.": {
+            "owner": 0,
+            "renter": 0,
+            "total": null
+        }
     },
     "incomeCategories": {
       "": {

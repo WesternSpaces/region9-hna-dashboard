@@ -16,6 +16,7 @@ export function Navigation({ selectedCounty, onCountyChange }: NavigationProps) 
     { label: 'Commuting', href: '#commuting' },
     { label: 'Housing Quality', href: '#housing-quality' },
     { label: 'Current & Projected Needs', href: '#housing-needs' },
+    { label: 'HNA Output Tables', href: '#hna-output-tables' },
   ];
 
   return (

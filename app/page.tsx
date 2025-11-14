@@ -12,6 +12,7 @@ import { HousingProblems } from '@/components/sections/HousingProblems';
 import { CommutingAnalysis } from '@/components/sections/CommutingAnalysis';
 import { HousingQuality } from '@/components/sections/HousingQuality';
 import { HousingNeeds } from '@/components/sections/HousingNeeds';
+import { HNAOutputTables } from '@/components/sections/HNAOutputTables';
 
 export default function Home() {
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
@@ -31,6 +32,7 @@ export default function Home() {
       <CommutingAnalysis selectedCounty={selectedCounty} />
       <HousingQuality selectedCounty={selectedCounty} />
       <HousingNeeds selectedCounty={selectedCounty} />
+      <HNAOutputTables selectedCounty={selectedCounty} />
       <Footer />
     </div>
   );
