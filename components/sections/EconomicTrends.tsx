@@ -67,6 +67,39 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
     return value;
   };
 
+  // Prepare historical jobs trend data for single county or regional aggregate
+  const prepareJobsHistoricalData = () => {
+    if (selectedCounty) {
+      // Single county - show that county's historical trend
+      const countyHistorical = REGION_9_HISTORICAL_DATA.find(c => c.county === selectedCounty);
+      if (!countyHistorical) return [];
+
+      const years = Object.keys(countyHistorical.jobs).filter(year =>
+        parseInt(year) >= 2013 && parseInt(year) <= 2023
+      ).sort();
+
+      return years.map(year => ({
+        year: parseInt(year),
+        Jobs: countyHistorical.jobs[year],
+      })).filter(d => d.Jobs !== null);
+    } else {
+      // Regional aggregate - sum all counties
+      const years = Array.from({length: 11}, (_, i) => 2013 + i); // 2013-2023
+      return years.map(year => {
+        const yearStr = year.toString();
+        const totalJobs = REGION_9_HISTORICAL_DATA.reduce((sum, county) =>
+          sum + (county.jobs[yearStr] || 0), 0
+        );
+        return {
+          year,
+          Jobs: totalJobs || null,
+        };
+      }).filter(d => d.Jobs !== null && d.Jobs > 0);
+    }
+  };
+
+  const jobsHistoricalData = prepareJobsHistoricalData();
+
   return (
     <Section
       id="economics"
@@ -211,6 +244,56 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
           <p className="text-xs text-slate-500 mt-2">Calculated from SDO 2023 data</p>
         </Card>
       </div>
+
+      {/* Historical Jobs Trends - Full Width */}
+      <Card title={`Historical Jobs Trends (2013-2023)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {jobsHistoricalData.length > 0 ? (
+          <>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={jobsHistoricalData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                />
+                <YAxis
+                  label={{ value: 'Jobs (hundreds)', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="Jobs"
+                  stroke="#16a34a"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  name="Jobs (hundreds)"
+                  connectNulls
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-900">
+                <strong>Historical Jobs Data (2013-2023):</strong> SDO actual estimates from Jobs by Sector data.
+                {selectedCounty && ` Showing ${selectedCounty} specific employment trends over time.`}
+                {selectedCounty && jobsHistoricalData.length === 0 && (
+                  <span className="ml-2 text-amber-700"><strong>Note:</strong> Jobs data not available for this county due to small population size.</span>
+                )}
+              </p>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Source: SDO 2023 Vintage Jobs by Sector Estimates</p>
+          </>
+        ) : (
+          <div className="p-6 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-amber-900">
+              <strong>No jobs data available</strong> {selectedCounty ? `for ${selectedCounty}` : 'for this selection'} due to small population size and SDO reporting thresholds.
+              {selectedCounty && (
+                <span className="ml-2">Counties with jobs data: Archuleta, La Plata, and Montezuma.</span>
+              )}
+            </p>
+          </div>
+        )}
+      </Card>
 
       {/* Key Insights */}
       <Card title="Key Insights" className="mt-6" highlight>
