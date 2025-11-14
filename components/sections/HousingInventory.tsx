@@ -5,30 +5,47 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
-export function HousingInventory() {
+interface HousingInventoryProps {
+  selectedCounty: string | null;
+}
+
+export function HousingInventory({ selectedCounty }: HousingInventoryProps) {
+  const filteredData = filterCountyData(selectedCounty);
+  const displayName = getFilterDisplayName(selectedCounty);
+
+  // Calculate aggregate stats from filtered data
+  const totalHousingUnits = filteredData.reduce((sum, county) => sum + (county.totalHousingUnits || 0), 0);
+  const totalOccupiedUnits = filteredData.reduce((sum, county) => sum + (county.occupiedUnits || 0), 0);
+  const totalVacantUnits = filteredData.reduce((sum, county) => sum + (county.vacantUnits || 0), 0);
+  const regionalVacancyRate = totalHousingUnits > 0 ? (totalVacantUnits / totalHousingUnits) * 100 : 0;
+  const totalSeasonalRecreational = filteredData.reduce((sum, county) => sum + (county.seasonalRecreational || 0), 0);
+  const totalOwnerOccupied = filteredData.reduce((sum, county) => sum + (county.ownerOccupied || 0), 0);
+  const ownershipRate = totalOccupiedUnits > 0 ? (totalOwnerOccupied / totalOccupiedUnits) * 100 : 0;
+
   // Transform data for Total Housing Units chart
-  const housingUnitsData = REGION_9_COUNTIES_DATA.map(county => ({
+  const housingUnitsData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     units: county.totalHousingUnits,
   }));
 
   // Transform data for Occupancy Status chart (stacked)
-  const occupancyData = REGION_9_COUNTIES_DATA.map(county => ({
+  const occupancyData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     occupied: county.occupiedUnits,
     vacant: county.vacantUnits,
   }));
 
   // Transform data for Tenure chart (owner vs renter)
-  const tenureData = REGION_9_COUNTIES_DATA.map(county => ({
+  const tenureData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     owner: county.ownerOccupied,
     renter: county.renterOccupied,
   }));
 
   // Transform data for Vacancy Rates chart
-  const vacancyRatesData = REGION_9_COUNTIES_DATA.map(county => ({
+  const vacancyRatesData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     rate: county.vacancyRate,
     seasonal: county.seasonalRecreational,
@@ -59,24 +76,24 @@ export function HousingInventory() {
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <StatCard
           label="Total Housing Units"
-          value={REGION_9_AGGREGATE_STATS.totalHousingUnits.toLocaleString()}
-          subtitle="Region 9 total"
+          value={totalHousingUnits.toLocaleString()}
+          subtitle={selectedCounty || "Region 9 total"}
         />
         <StatCard
           label="Occupied Units"
-          value={REGION_9_AGGREGATE_STATS.totalOccupiedUnits.toLocaleString()}
-          subtitle={`${(100 - REGION_9_AGGREGATE_STATS.regionalVacancyRate).toFixed(1)}% occupancy`}
+          value={totalOccupiedUnits.toLocaleString()}
+          subtitle={`${(100 - regionalVacancyRate).toFixed(1)}% occupancy`}
         />
         <StatCard
           label="Vacancy Rate"
-          value={`${REGION_9_AGGREGATE_STATS.regionalVacancyRate.toFixed(1)}%`}
-          subtitle={`${REGION_9_AGGREGATE_STATS.totalVacantUnits.toLocaleString()} vacant units`}
+          value={`${regionalVacancyRate.toFixed(1)}%`}
+          subtitle={`${totalVacantUnits.toLocaleString()} vacant units`}
           trend="down"
         />
         <StatCard
           label="Seasonal/Recreational"
-          value={REGION_9_AGGREGATE_STATS.totalSeasonalRecreational.toLocaleString()}
-          subtitle={`${((REGION_9_AGGREGATE_STATS.totalSeasonalRecreational / REGION_9_AGGREGATE_STATS.totalVacantUnits) * 100).toFixed(1)}% of vacant`}
+          value={totalSeasonalRecreational.toLocaleString()}
+          subtitle={totalVacantUnits > 0 ? `${((totalSeasonalRecreational / totalVacantUnits) * 100).toFixed(1)}% of vacant` : 'N/A'}
         />
       </div>
 
@@ -186,7 +203,7 @@ export function HousingInventory() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {REGION_9_COUNTIES_DATA.map((county, idx) => {
+              {filteredData.map((county, idx) => {
                 const pctOfVacant = county.seasonalRecreational && county.vacantUnits
                   ? ((county.seasonalRecreational / county.vacantUnits) * 100).toFixed(1)
                   : 'N/A';
@@ -223,26 +240,53 @@ export function HousingInventory() {
       {/* Key Insights */}
       <Card title="Key Insights" className="mt-6" highlight>
         <ul className="space-y-2 text-slate-700">
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span>The region has <strong>{REGION_9_AGGREGATE_STATS.totalHousingUnits.toLocaleString()} total housing units</strong>, with a <strong>{REGION_9_AGGREGATE_STATS.regionalVacancyRate.toFixed(1)}% vacancy rate</strong> significantly above the national average of ~10%.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span><strong>San Juan County</strong> has the highest vacancy rate at 49.7%, with 297 of its 358 vacant units (83%) being seasonal/recreational properties.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span><strong>Archuleta County</strong> has 3,059 seasonal/recreational units, representing 31.5% of all housing stock - the highest proportion in the region.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span>Regional homeownership rate is <strong>{REGION_9_AGGREGATE_STATS.ownershipRate.toFixed(1)}%</strong>, higher than the national average of ~65%, indicating a preference for ownership in rural mountain communities.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-amber-600 font-bold mr-2">•</span>
-            <span><strong>Critical Finding:</strong> {REGION_9_AGGREGATE_STATS.totalSeasonalRecreational.toLocaleString()} seasonal/recreational units represent housing stock that is unavailable for year-round residents, exacerbating housing shortages.</span>
-          </li>
+          {!selectedCounty ? (
+            <>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>The region has <strong>{REGION_9_AGGREGATE_STATS.totalHousingUnits.toLocaleString()} total housing units</strong>, with a <strong>{REGION_9_AGGREGATE_STATS.regionalVacancyRate.toFixed(1)}% vacancy rate</strong> significantly above the national average of ~10%.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span><strong>San Juan County</strong> has the highest vacancy rate at 49.7%, with 297 of its 358 vacant units (83%) being seasonal/recreational properties.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span><strong>Archuleta County</strong> has 3,059 seasonal/recreational units, representing 31.5% of all housing stock - the highest proportion in the region.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>Regional homeownership rate is <strong>{REGION_9_AGGREGATE_STATS.ownershipRate.toFixed(1)}%</strong>, higher than the national average of ~65%, indicating a preference for ownership in rural mountain communities.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-amber-600 font-bold mr-2">•</span>
+                <span><strong>Critical Finding:</strong> {REGION_9_AGGREGATE_STATS.totalSeasonalRecreational.toLocaleString()} seasonal/recreational units represent housing stock that is unavailable for year-round residents, exacerbating housing shortages.</span>
+              </li>
+            </>
+          ) : (
+            <>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span><strong>{selectedCounty}</strong> has <strong>{totalHousingUnits.toLocaleString()} total housing units</strong>, with a <strong>{regionalVacancyRate.toFixed(1)}% vacancy rate</strong>.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>Of the {totalHousingUnits.toLocaleString()} units, <strong>{totalOccupiedUnits.toLocaleString()} are occupied</strong> and <strong>{totalVacantUnits.toLocaleString()} are vacant</strong>.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span><strong>{totalSeasonalRecreational.toLocaleString()} seasonal/recreational units</strong> represent {totalHousingUnits > 0 ? ((totalSeasonalRecreational / totalHousingUnits) * 100).toFixed(1) : '0'}% of all housing stock.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>Homeownership rate is <strong>{ownershipRate.toFixed(1)}%</strong> ({totalOwnerOccupied.toLocaleString()} owner-occupied units).</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-amber-600 font-bold mr-2">•</span>
+                <span><strong>Critical Finding:</strong> {totalSeasonalRecreational.toLocaleString()} seasonal/recreational units represent housing stock that is unavailable for year-round residents, exacerbating housing shortages.</span>
+              </li>
+            </>
+          )}
         </ul>
       </Card>
     </Section>

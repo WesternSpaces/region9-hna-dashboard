@@ -5,17 +5,30 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
-export function HousingProblems() {
+interface HousingProblemsProps {
+  selectedCounty: string | null;
+}
+
+export function HousingProblems({ selectedCounty }: HousingProblemsProps) {
+  const filteredData = filterCountyData(selectedCounty);
+  const displayName = getFilterDisplayName(selectedCounty);
+
+  // Calculate aggregate stats from filtered data
+  const totalHouseholds = filteredData.reduce((sum, c) => sum + (c.households2023 || 0), 0);
+  const totalCostBurdened30Plus = filteredData.reduce((sum, c) => sum + (c.costBurdened30Plus || 0), 0);
+  const totalCostBurdened50Plus = filteredData.reduce((sum, c) => sum + (c.costBurdened50Plus || 0), 0);
+
   // Transform data for Cost Burden Rates (Owner vs Renter comparison)
-  const costBurdenRatesData = REGION_9_COUNTIES_DATA.map(county => ({
+  const costBurdenRatesData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     owner: county.ownerCostBurdenRate,
     renter: county.renterCostBurdenRate,
   }));
 
   // Transform data for Cost Burdened Households (30%+ and 50%+)
-  const costBurdenedHouseholdsData = REGION_9_COUNTIES_DATA.map(county => ({
+  const costBurdenedHouseholdsData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     '30%+ Cost Burden': county.costBurdened30Plus,
     '50%+ Severe Cost Burden': county.costBurdened50Plus,
@@ -25,17 +38,17 @@ export function HousingProblems() {
   const regionalCostBurdenData = [
     {
       name: '30-50% Cost Burdened',
-      value: REGION_9_AGGREGATE_STATS.totalCostBurdened30Plus - REGION_9_AGGREGATE_STATS.totalCostBurdened50Plus,
+      value: totalCostBurdened30Plus - totalCostBurdened50Plus,
       color: '#f97316',
     },
     {
       name: '50%+ Severely Burdened',
-      value: REGION_9_AGGREGATE_STATS.totalCostBurdened50Plus,
+      value: totalCostBurdened50Plus,
       color: '#dc2626',
     },
     {
       name: 'Not Cost Burdened',
-      value: REGION_9_AGGREGATE_STATS.totalHouseholds2023 - REGION_9_AGGREGATE_STATS.totalCostBurdened30Plus,
+      value: totalHouseholds - totalCostBurdened30Plus,
       color: '#16a34a',
     },
   ];

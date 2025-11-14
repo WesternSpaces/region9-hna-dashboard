@@ -5,20 +5,38 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
-export function HousingNeeds() {
-  // AMI Distribution Data (Regional)
+interface HousingNeedsProps {
+  selectedCounty: string | null;
+}
+
+export function HousingNeeds({ selectedCounty }: HousingNeedsProps) {
+  const filteredData = filterCountyData(selectedCounty);
+  const displayName = getFilterDisplayName(selectedCounty);
+
+  // Calculate aggregate AMI distribution from filtered data
+  const aggregateAMI = filteredData.reduce((acc, county) => ({
+    veryLow30: acc.veryLow30 + (county.ami.veryLow30 || 0),
+    veryLow50: acc.veryLow50 + (county.ami.veryLow50 || 0),
+    low80: acc.low80 + (county.ami.low80 || 0),
+    moderate120: acc.moderate120 + (county.ami.moderate120 || 0),
+    middle140: acc.middle140 + (county.ami.middle140 || 0),
+    upper140Plus: acc.upper140Plus + (county.ami.upper140Plus || 0),
+  }), { veryLow30: 0, veryLow50: 0, low80: 0, moderate120: 0, middle140: 0, upper140Plus: 0 });
+
+  // AMI Distribution Data (Regional or County-specific)
   const amiDistributionData = [
-    { bracket: '≤30% AMI', households: REGION_9_AGGREGATE_STATS.regionalAMI.veryLow30, color: '#dc2626' },
-    { bracket: '31-50% AMI', households: REGION_9_AGGREGATE_STATS.regionalAMI.veryLow50, color: '#f97316' },
-    { bracket: '51-80% AMI', households: REGION_9_AGGREGATE_STATS.regionalAMI.low80, color: '#eab308' },
-    { bracket: '81-120% AMI', households: REGION_9_AGGREGATE_STATS.regionalAMI.moderate120, color: '#3b82f6' },
-    { bracket: '121-140% AMI', households: REGION_9_AGGREGATE_STATS.regionalAMI.middle140, color: '#16a34a' },
-    { bracket: '>140% AMI', households: REGION_9_AGGREGATE_STATS.regionalAMI.upper140Plus, color: '#059669' },
+    { bracket: '≤30% AMI', households: aggregateAMI.veryLow30, color: '#dc2626' },
+    { bracket: '31-50% AMI', households: aggregateAMI.veryLow50, color: '#f97316' },
+    { bracket: '51-80% AMI', households: aggregateAMI.low80, color: '#eab308' },
+    { bracket: '81-120% AMI', households: aggregateAMI.moderate120, color: '#3b82f6' },
+    { bracket: '121-140% AMI', households: aggregateAMI.middle140, color: '#16a34a' },
+    { bracket: '>140% AMI', households: aggregateAMI.upper140Plus, color: '#059669' },
   ];
 
   // Low-Income Housing Need by County (≤80% AMI)
-  const lowIncomeNeedData = REGION_9_COUNTIES_DATA.map(county => {
+  const lowIncomeNeedData = filteredData.map(county => {
     const lowIncome = (county.ami.veryLow30 || 0) + (county.ami.veryLow50 || 0) + (county.ami.low80 || 0);
     const total = (county.ami.veryLow30 || 0) + (county.ami.veryLow50 || 0) + (county.ami.low80 || 0) +
                   (county.ami.moderate120 || 0) + (county.ami.middle140 || 0) + (county.ami.upper140Plus || 0);
@@ -32,7 +50,7 @@ export function HousingNeeds() {
   });
 
   // Projected Housing Gap (2023-2033)
-  const housingGapData = REGION_9_COUNTIES_DATA.map(county => {
+  const housingGapData = filteredData.map(county => {
     const projectedNeed = county.households2033Projection && county.households2023
       ? county.households2033Projection - county.households2023
       : 0;
@@ -48,7 +66,7 @@ export function HousingNeeds() {
   });
 
   // AMI County Distribution (Stacked)
-  const amiByCountyData = REGION_9_COUNTIES_DATA.map(county => ({
+  const amiByCountyData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     '≤30% AMI': county.ami.veryLow30,
     '31-50% AMI': county.ami.veryLow50,

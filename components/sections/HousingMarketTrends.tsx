@@ -5,22 +5,46 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
-export function HousingMarketTrends() {
+interface HousingMarketTrendsProps {
+  selectedCounty: string | null;
+}
+
+export function HousingMarketTrends({ selectedCounty }: HousingMarketTrendsProps) {
+  const filteredData = filterCountyData(selectedCounty);
+  const displayName = getFilterDisplayName(selectedCounty);
+
+  // Calculate aggregate stats from filtered data
+  const homeValues = filteredData.map(c => c.medianHomeValue).filter(v => v !== null) as number[];
+  const rents = filteredData.map(c => c.medianGrossRent).filter(v => v !== null) as number[];
+  const totalHouseholds = filteredData.reduce((sum, c) => sum + (c.households2023 || 0), 0);
+
+  const weightedHomeValue = totalHouseholds > 0
+    ? filteredData.reduce((sum, c) => sum + (c.medianHomeValue || 0) * (c.households2023 || 0), 0) / totalHouseholds
+    : 0;
+  const weightedRent = totalHouseholds > 0
+    ? filteredData.reduce((sum, c) => sum + (c.medianGrossRent || 0) * (c.households2023 || 0), 0) / totalHouseholds
+    : 0;
+  const minHomeValue = homeValues.length > 0 ? Math.min(...homeValues) : 0;
+  const maxHomeValue = homeValues.length > 0 ? Math.max(...homeValues) : 0;
+  const minRent = rents.length > 0 ? Math.min(...rents) : 0;
+  const maxRent = rents.length > 0 ? Math.max(...rents) : 0;
+
   // Transform data for Median Home Values chart
-  const homeValuesData = REGION_9_COUNTIES_DATA.map(county => ({
+  const homeValuesData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     value: county.medianHomeValue,
   }));
 
   // Transform data for Median Gross Rent chart
-  const rentData = REGION_9_COUNTIES_DATA.map(county => ({
+  const rentData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     rent: county.medianGrossRent,
   }));
 
   // Transform data for Affordability Gap (Home Value to Income Ratio)
-  const affordabilityData = REGION_9_COUNTIES_DATA.map(county => ({
+  const affordabilityData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     ratio: county.medianHomeValue && county.medianIncome
       ? parseFloat((county.medianHomeValue / county.medianIncome).toFixed(2))
@@ -62,14 +86,14 @@ export function HousingMarketTrends() {
       {/* Key Stats */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <StatCard
-          label="Median Home Value (Regional)"
-          value={`$${REGION_9_AGGREGATE_STATS.medianHomeValueRange.weighted.toLocaleString()}`}
-          subtitle={`Range: $${(REGION_9_AGGREGATE_STATS.medianHomeValueRange.min / 1000).toFixed(0)}k - $${(REGION_9_AGGREGATE_STATS.medianHomeValueRange.max / 1000).toFixed(0)}k`}
+          label={selectedCounty ? `Median Home Value` : "Median Home Value (Regional)"}
+          value={`$${Math.round(weightedHomeValue).toLocaleString()}`}
+          subtitle={selectedCounty || `Range: $${(minHomeValue / 1000).toFixed(0)}k - $${(maxHomeValue / 1000).toFixed(0)}k`}
         />
         <StatCard
-          label="Median Gross Rent (Regional)"
-          value={`$${REGION_9_AGGREGATE_STATS.medianGrossRentRange.weighted.toLocaleString()}`}
-          subtitle={`Range: $${REGION_9_AGGREGATE_STATS.medianGrossRentRange.min} - $${REGION_9_AGGREGATE_STATS.medianGrossRentRange.max}`}
+          label={selectedCounty ? `Median Gross Rent` : "Median Gross Rent (Regional)"}
+          value={`$${Math.round(weightedRent).toLocaleString()}`}
+          subtitle={selectedCounty || `Range: $${minRent} - $${maxRent}`}
         />
         <StatCard
           label="Affordability Challenge"
@@ -189,7 +213,7 @@ export function HousingMarketTrends() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {REGION_9_COUNTIES_DATA.map((county, idx) => {
+              {filteredData.map((county, idx) => {
                 const ratio = county.medianHomeValue && county.medianIncome
                   ? (county.medianHomeValue / county.medianIncome).toFixed(2)
                   : 'N/A';

@@ -5,22 +5,41 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
-export function EconomicTrends() {
+interface EconomicTrendsProps {
+  selectedCounty: string | null;
+}
+
+export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
+  const filteredData = filterCountyData(selectedCounty);
+  const displayName = getFilterDisplayName(selectedCounty);
+
+  // Calculate aggregate stats from filtered data
+  const totalJobs = filteredData.reduce((sum, county) => sum + (county.jobs2023 || 0), 0);
+  const totalPopulation = filteredData.reduce((sum, county) => sum + (county.population2023 || 0), 0);
+  const totalHouseholds = filteredData.reduce((sum, county) => sum + (county.households2023 || 0), 0);
+  const weightedMedianIncome = totalHouseholds > 0
+    ? filteredData.reduce((sum, county) => sum + (county.medianIncome || 0) * (county.households2023 || 0), 0) / totalHouseholds
+    : 0;
+  const avgLaborForce = filteredData.length > 0
+    ? filteredData.reduce((sum, county) => sum + (county.laborForceParticipationRate || 0), 0) / filteredData.length
+    : 0;
+
   // Transform data for Jobs by County chart (filter out counties with no data)
-  const jobsData = REGION_9_COUNTIES_DATA.filter(county => county.jobs2023 !== null).map(county => ({
+  const jobsData = filteredData.filter(county => county.jobs2023 !== null).map(county => ({
     county: county.county.replace(' County', ''),
     jobs: county.jobs2023,
   }));
 
   // Transform data for Median Income chart
-  const incomeData = REGION_9_COUNTIES_DATA.map(county => ({
+  const incomeData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     income: county.medianIncome,
   }));
 
   // Transform data for Labor Force Participation chart
-  const laborForceData = REGION_9_COUNTIES_DATA.map(county => ({
+  const laborForceData = filteredData.map(county => ({
     county: county.county.replace(' County', ''),
     rate: county.laborForceParticipationRate,
   }));
@@ -57,18 +76,18 @@ export function EconomicTrends() {
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <StatCard
           label="Total Jobs (2023)"
-          value={REGION_9_AGGREGATE_STATS.totalJobs2023.toLocaleString()}
-          subtitle="Archuleta, La Plata, Montezuma counties"
+          value={totalJobs > 0 ? totalJobs.toLocaleString() : 'N/A'}
+          subtitle={selectedCounty || "Archuleta, La Plata, Montezuma"}
         />
         <StatCard
           label="Weighted Median Income"
-          value={`$${REGION_9_AGGREGATE_STATS.weightedMedianIncome.toLocaleString()}`}
-          subtitle="Regional median household income"
+          value={`$${Math.round(weightedMedianIncome).toLocaleString()}`}
+          subtitle={selectedCounty ? `${selectedCounty} median` : "Regional median household income"}
         />
         <StatCard
           label="Labor Force Participation"
-          value={`${REGION_9_AGGREGATE_STATS.avgLaborForceParticipation.toFixed(1)}%`}
-          subtitle="Regional average"
+          value={`${avgLaborForce.toFixed(1)}%`}
+          subtitle={selectedCounty ? `${selectedCounty} rate` : "Regional average"}
         />
       </div>
 
@@ -141,7 +160,7 @@ export function EconomicTrends() {
         <Card title="Jobs-to-Households Ratio (2023)">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
-              data={REGION_9_COUNTIES_DATA.filter(c => c.jobs2023 !== null).map(county => ({
+              data={filteredData.filter(c => c.jobs2023 !== null).map(county => ({
                 county: county.county.replace(' County', ''),
                 ratio: county.jobs2023 && county.households2023
                   ? parseFloat((county.jobs2023 / county.households2023).toFixed(2))
@@ -168,26 +187,58 @@ export function EconomicTrends() {
       {/* Key Insights */}
       <Card title="Key Insights" className="mt-6" highlight>
         <ul className="space-y-2 text-slate-700">
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span><strong>La Plata County</strong> dominates regional employment with {REGION_9_COUNTIES_DATA[2].jobs2023?.toLocaleString()} jobs (64% of reported regional jobs).</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span><strong>La Plata County</strong> has the highest median household income at ${REGION_9_COUNTIES_DATA[2].medianIncome?.toLocaleString()}, while <strong>Montezuma County</strong> has the lowest at ${REGION_9_COUNTIES_DATA[3].medianIncome?.toLocaleString()}.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span>Labor force participation rates are relatively low across the region (37.5%-44.4%), likely due to <strong>retirement communities and seasonal employment patterns</strong>.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 font-bold mr-2">•</span>
-            <span>La Plata County has the highest jobs-to-households ratio (1.41), indicating it serves as a <strong>regional employment hub</strong> drawing workers from surrounding counties.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-amber-600 font-bold mr-2">•</span>
-            <span><strong>Data Limitation:</strong> Jobs data unavailable for Dolores and San Juan counties due to small population size and SDO reporting thresholds.</span>
-          </li>
+          {!selectedCounty ? (
+            <>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span><strong>La Plata County</strong> dominates regional employment with {REGION_9_COUNTIES_DATA[2].jobs2023?.toLocaleString()} jobs (64% of reported regional jobs).</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span><strong>La Plata County</strong> has the highest median household income at ${REGION_9_COUNTIES_DATA[2].medianIncome?.toLocaleString()}, while <strong>Montezuma County</strong> has the lowest at ${REGION_9_COUNTIES_DATA[3].medianIncome?.toLocaleString()}.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>Labor force participation rates are relatively low across the region (37.5%-44.4%), likely due to <strong>retirement communities and seasonal employment patterns</strong>.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>La Plata County has the highest jobs-to-households ratio (1.41), indicating it serves as a <strong>regional employment hub</strong> drawing workers from surrounding counties.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-amber-600 font-bold mr-2">•</span>
+                <span><strong>Data Limitation:</strong> Jobs data unavailable for Dolores and San Juan counties due to small population size and SDO reporting thresholds.</span>
+              </li>
+            </>
+          ) : (
+            <>
+              {totalJobs > 0 ? (
+                <li className="flex items-start">
+                  <span className="text-blue-600 font-bold mr-2">•</span>
+                  <span><strong>{selectedCounty}</strong> has <strong>{totalJobs.toLocaleString()} jobs</strong> reported for 2023.</span>
+                </li>
+              ) : (
+                <li className="flex items-start">
+                  <span className="text-amber-600 font-bold mr-2">•</span>
+                  <span><strong>Data Limitation:</strong> Jobs data unavailable for {selectedCounty} due to small population size and SDO reporting thresholds.</span>
+                </li>
+              )}
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>Median household income is <strong>${Math.round(weightedMedianIncome).toLocaleString()}</strong>.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-600 font-bold mr-2">•</span>
+                <span>Labor force participation rate is <strong>{avgLaborForce.toFixed(1)}%</strong>.</span>
+              </li>
+              {totalJobs > 0 && totalHouseholds > 0 && (
+                <li className="flex items-start">
+                  <span className="text-blue-600 font-bold mr-2">•</span>
+                  <span>Jobs-to-households ratio is <strong>{(totalJobs / totalHouseholds).toFixed(2)}</strong>, {(totalJobs / totalHouseholds) > 1 ? 'indicating the county draws workers from surrounding areas' : 'indicating residents may commute to jobs in other counties'}.</span>
+                </li>
+              )}
+            </>
+          )}
         </ul>
       </Card>
     </Section>
