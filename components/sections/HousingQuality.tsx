@@ -159,7 +159,7 @@ export function HousingQuality({ selectedCounty }: HousingQualityProps) {
             and accessibility modifications. Identifying aging housing informs rehab programs and redevelopment priorities.
           </p>
           <p>
-            <strong>Overcrowding:</strong> Units with >1.0 persons per room indicate <strong>hidden housing need</strong>.
+            <strong>Overcrowding:</strong> Units with &gt;1.0 persons per room indicate <strong>hidden housing need</strong>.
             Overcrowding suggests insufficient supply of affordable, family-sized units.
           </p>
           <p>
@@ -225,7 +225,7 @@ export function HousingQuality({ selectedCounty }: HousingQualityProps) {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name.split('(')[0]}: ${(percent * 100).toFixed(1)}%`}
+                label={({ name, percent }) => `${name?.split('(')[0] || 'Unknown'}: ${((percent || 0) * 100).toFixed(1)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
