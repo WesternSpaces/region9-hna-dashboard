@@ -15,7 +15,7 @@
  */
 
 export interface WageBySector {
-  sectorId: number | string;
+  sectorId: number | string | null;
   sectorName: string;
   wage2023: number | null;
   wage2022: number | null;
@@ -25,7 +25,7 @@ export interface WageBySector {
 }
 
 export interface JobProjectionBySector {
-  sectorId: number | string;
+  sectorId: number | string | null;
   sectorName: string;
   projections: { [year: string]: number | null };
 }
