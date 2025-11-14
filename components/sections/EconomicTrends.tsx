@@ -626,13 +626,13 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                   label={{ value: 'Households', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip formatter={formatTooltip} />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 {incomePeriods.map((period, idx) => (
                   <Bar
                     key={period}
                     dataKey={period}
                     fill={`hsl(${idx * 120}, 60%, 50%)`}
-                    name={period}
+                    name={`ACS ${period}`}
                   />
                 ))}
               </BarChart>
