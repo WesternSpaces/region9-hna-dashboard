@@ -220,6 +220,64 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
     ? Object.keys(jobProjectionsData[0]).filter(k => k !== 'year')
     : [];
 
+  // Prepare income distribution trends data
+  const prepareIncomeDistributionData = () => {
+    const countyDataList = selectedCounty
+      ? REGION_9_COMPREHENSIVE_DATA.filter(c => c.county === selectedCounty)
+      : REGION_9_COMPREHENSIVE_DATA;
+
+    if (countyDataList.length === 0) return [];
+
+    // Aggregate income data across counties and periods
+    const aggregatedByBracket: { [bracket: string]: { [period: string]: number } } = {};
+
+    countyDataList.forEach(county => {
+      Object.entries(county.incomeCategories || {}).forEach(([bracket, periods]: [string, any]) => {
+        if (bracket === 'Total' || !periods) return;
+
+        if (!aggregatedByBracket[bracket]) {
+          aggregatedByBracket[bracket] = {};
+        }
+
+        Object.entries(periods).forEach(([period, value]: [string, any]) => {
+          if (typeof value === 'number') {
+            aggregatedByBracket[bracket][period] =
+              (aggregatedByBracket[bracket][period] || 0) + value;
+          }
+        });
+      });
+    });
+
+    // Get all available periods and sort them
+    const allPeriods = new Set<string>();
+    Object.values(aggregatedByBracket).forEach(periods => {
+      Object.keys(periods).forEach(period => allPeriods.add(period));
+    });
+    const sortedPeriods = Array.from(allPeriods).sort();
+
+    // Take the most recent 3 periods if available
+    const recentPeriods = sortedPeriods.slice(-3);
+
+    // Transform to chart format - one bar per bracket showing multiple periods
+    return Object.entries(aggregatedByBracket)
+      .map(([bracket, periods]) => {
+        const dataPoint: any = { bracket: bracket.replace('Less than', '<').replace('or more', '+') };
+        recentPeriods.forEach(period => {
+          dataPoint[period] = periods[period] || 0;
+        });
+        return dataPoint;
+      })
+      .filter(d => {
+        // Only include brackets that have data
+        return recentPeriods.some(p => d[p] > 0);
+      });
+  };
+
+  const incomeDistributionData = prepareIncomeDistributionData();
+  const incomePeriods = incomeDistributionData.length > 0
+    ? Object.keys(incomeDistributionData[0]).filter(k => k !== 'bracket')
+    : [];
+
   return (
     <Section
       id="economics"
@@ -541,6 +599,72 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
               <strong>No job projection data available</strong> {selectedCounty ? `for ${selectedCounty}` : 'for this selection'}.
             </p>
           </div>
+        )}
+      </Card>
+
+      {/* Income Distribution Trends */}
+      <Card title={`Income Distribution Trends${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {incomeDistributionData.length > 0 && incomePeriods.length > 0 ? (
+          <>
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-900">
+                <strong>Income Inequality Trends:</strong> Comparing household income distribution across {incomePeriods.length} time periods.
+                Shows whether middle class is growing/shrinking and if income polarization is increasing.
+              </p>
+            </div>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={incomeDistributionData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="bracket"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  fontSize={10}
+                />
+                <YAxis
+                  label={{ value: 'Households', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                {incomePeriods.map((period, idx) => (
+                  <Bar
+                    key={period}
+                    dataKey={period}
+                    fill={`hsl(${idx * 120}, 60%, 50%)`}
+                    name={period}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3 bg-red-50 border border-red-200 rounded">
+                <p className="text-xs font-semibold text-red-900 mb-1">LOW INCOME (&lt;$35k)</p>
+                <p className="text-xs text-red-700">
+                  Lowest income brackets - need affordable/subsidized housing
+                </p>
+              </div>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-xs font-semibold text-blue-900 mb-1">MIDDLE INCOME ($35k-$100k)</p>
+                <p className="text-xs text-blue-700">
+                  Core workforce - need workforce housing programs
+                </p>
+              </div>
+              <div className="p-3 bg-green-50 border border-green-200 rounded">
+                <p className="text-xs font-semibold text-green-900 mb-1">HIGH INCOME (&gt;$100k)</p>
+                <p className="text-xs text-green-700">
+                  Can typically afford market-rate housing
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-4">Source: ACS Income Categories (multiple 5-year periods)</p>
+            <p className="text-xs text-slate-600 mt-2">
+              <strong>Analysis:</strong> Track whether income distribution is becoming more polarized (growing extremes, shrinking middle)
+              or more equal over time. Growing low-income share indicates increasing housing affordability crisis.
+            </p>
+          </>
+        ) : (
+          <p className="text-slate-600">No income distribution trend data available for this selection.</p>
         )}
       </Card>
 
