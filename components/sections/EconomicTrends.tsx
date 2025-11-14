@@ -562,7 +562,11 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
                     return item?.fullSectorName || label;
                   }}
                 />
-                <Bar dataKey="wage" fill="#059669" name="Median Wage" />
+                <Bar
+                  dataKey="wage"
+                  fill={selectedCounty ? (countyColors[selectedCounty.replace(' County', '')] || '#059669') : '#059669'}
+                  name="Median Wage"
+                />
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
