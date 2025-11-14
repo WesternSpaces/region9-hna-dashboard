@@ -146,7 +146,7 @@ def extract_age_distribution(county_name: str) -> Dict[str, Any]:
 
         # Find rows for each cohort
         for idx, row in df.iterrows():
-            age_label = str(row.get('AGE', '')).strip()
+            age_label = str(row.get('AGE GROUP', '')).strip()
 
             # Map age labels to cohort keys
             cohort_key = None
@@ -160,7 +160,7 @@ def extract_age_distribution(county_name: str) -> Dict[str, Any]:
                 cohort_key = '45-64'
             elif '65 to 74' in age_label or '65-74' in age_label:
                 cohort_key = '65-74'
-            elif '75 plus' in age_label.lower() or '75+' in age_label:
+            elif '75 to 100' in age_label or '75 plus' in age_label.lower() or '75+' in age_label:
                 cohort_key = '75+'
 
             if cohort_key:
