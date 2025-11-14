@@ -1,32 +1,46 @@
 export function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 mt-20">
       <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
+        <div className="grid md:grid-cols-3 gap-12 mb-12">
           <div>
-            <h3 className="text-lg font-bold mb-4">About This Dashboard</h3>
-            <p className="text-slate-300 text-sm">
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              About This Dashboard
+            </h3>
+            <p className="text-slate-300 text-sm leading-relaxed">
               Regional Housing Needs Assessment tool for Region 9 Economic Development District,
               compliant with Colorado SB24-174 requirements.
             </p>
           </div>
 
           <div>
-            <h3 className="text-lg font-bold mb-4">Data Sources</h3>
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              Data Sources
+            </h3>
             <ul className="text-slate-300 text-sm space-y-2">
-              <li>• Colorado State Demography Office (SDO)</li>
-              <li>• American Community Survey (ACS)</li>
-              <li>• HUD CHAS Data</li>
-              <li>• Bureau of Labor Statistics (BLS)</li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue-400">●</span> Colorado State Demography Office (SDO)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue-400">●</span> American Community Survey (ACS)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue-400">●</span> HUD CHAS Data
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue-400">●</span> Bureau of Labor Statistics (BLS)
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-lg font-bold mb-4">Contact</h3>
-            <p className="text-slate-300 text-sm mb-2">
-              <strong>Sarah Brown McClain</strong><br/>
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              Contact
+            </h3>
+            <p className="text-slate-300 text-sm mb-2 leading-relaxed">
+              <strong className="text-white">Sarah Brown McClain</strong><br/>
               Western Spaces<br/>
-              <a href="mailto:sarah@westernspaces.org" className="text-blue-400 hover:text-blue-300 underline">
+              <a href="mailto:sarah@westernspaces.org" className="text-blue-400 hover:text-blue-300 underline transition-colors">
                 sarah@westernspaces.org
               </a>
             </p>

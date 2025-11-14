@@ -15,7 +15,7 @@ export default function Home() {
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <Navigation
         selectedCounty={selectedCounty}
         onCountyChange={setSelectedCounty}

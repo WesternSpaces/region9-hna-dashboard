@@ -13,16 +13,29 @@ export function StatCard({ label, value, subtitle, trend, className = '' }: Stat
     neutral: 'text-slate-600'
   };
 
+  const trendIcons = {
+    up: '↗',
+    down: '↘',
+    neutral: '→'
+  };
+
   return (
-    <div className={`bg-white rounded-lg shadow-md border border-slate-200 p-6 ${className}`}>
-      <p className="text-sm font-medium text-slate-600 uppercase tracking-wide mb-1">
-        {label}
-      </p>
-      <p className={`text-3xl font-bold ${trend ? trendColors[trend] : 'text-slate-900'}`}>
+    <div className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-100 p-6 ${className}`}>
+      <div className="flex items-start justify-between mb-3">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          {label}
+        </p>
+        {trend && (
+          <span className={`text-xl ${trendColors[trend]}`}>
+            {trendIcons[trend]}
+          </span>
+        )}
+      </div>
+      <p className={`text-4xl font-extrabold mb-2 ${trend ? trendColors[trend] : 'text-slate-900'}`}>
         {value}
       </p>
       {subtitle && (
-        <p className="text-sm text-slate-500 mt-2">{subtitle}</p>
+        <p className="text-sm text-slate-600 leading-relaxed">{subtitle}</p>
       )}
     </div>
   );
