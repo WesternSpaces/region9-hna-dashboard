@@ -250,6 +250,15 @@ export function HousingQuality({ selectedCounty }: HousingQualityProps) {
             </p>
           </div>
           <p className="text-xs text-slate-500 mt-4">Source: ACS 2019-2023 Tenure by Overcrowding</p>
+          {totalUnits === 0 && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded">
+              <p className="text-xs text-amber-900">
+                <strong>Data Note:</strong> Overcrowding data is currently only available for Archuleta County
+                (extracted from Census Tract tables). County-level overcrowding data for Dolores, La Plata,
+                Montezuma, and San Juan counties is not available in the SDO County Data Tables.
+              </p>
+            </div>
+          )}
         </Card>
 
         {/* Housing Stock Analysis */}
