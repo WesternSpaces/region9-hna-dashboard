@@ -29,9 +29,10 @@ export function HousingQuality({ selectedCounty }: HousingQualityProps) {
     const aggregated: { [period: string]: number } = {};
 
     countyDataList.forEach(county => {
-      Object.entries(county.yearBuilt.total || {}).forEach(([period, value]) => {
-        if (value && period !== 'Total') {
-          aggregated[period] = (aggregated[period] || 0) + (value as number);
+      Object.entries(county.yearBuilt || {}).forEach(([period, data]: [string, any]) => {
+        const totalValue = data?.total;
+        if (totalValue && period !== 'Total') {
+          aggregated[period] = (aggregated[period] || 0) + totalValue;
         }
       });
     });
@@ -84,10 +85,13 @@ export function HousingQuality({ selectedCounty }: HousingQualityProps) {
 
     countyDataList.forEach(county => {
       Object.entries(county.overcrowding || {}).forEach(([category, data]: [string, any]) => {
-        if (category.includes('1.00 or less')) {
-          notOvercrowded += data?.total || 0;
-        } else if (category.includes('1.01')) {
-          overcrowded += data?.total || 0;
+        const totalValue = data?.total || 0;
+        // "Less than 1 person per room" = not overcrowded
+        // "1 to 2 people per room" and "More than 2 people per room" = overcrowded
+        if (category.includes('Less than 1 person')) {
+          notOvercrowded += totalValue;
+        } else if (category.includes('1 to 2') || category.includes('More than 2')) {
+          overcrowded += totalValue;
         }
       });
     });
