@@ -151,6 +151,75 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
 
   const wagesBySectorData = prepareWagesBySectorData();
 
+  // Prepare job projections by sector data
+  const prepareJobProjectionsData = () => {
+    if (selectedCounty) {
+      // Single county
+      const countyData = REGION_9_COMPREHENSIVE_DATA.find(c => c.county === selectedCounty);
+      if (!countyData || !countyData.jobProjections) return [];
+
+      // Get top sectors and their projections
+      const topSectors = countyData.jobProjections
+        .filter(s => s.projections['2033'] !== null)
+        .sort((a, b) => (b.projections['2033'] || 0) - (a.projections['2033'] || 0))
+        .slice(0, 10); // Top 10 sectors
+
+      // Transform to time-series format
+      const years = Array.from({length: 10}, (_, i) => 2024 + i);
+      return years.map(year => {
+        const dataPoint: any = { year };
+        topSectors.forEach(sector => {
+          const shortName = sector.sectorName.length > 20
+            ? sector.sectorName.substring(0, 17) + '...'
+            : sector.sectorName;
+          dataPoint[shortName] = sector.projections[year.toString()];
+        });
+        return dataPoint;
+      });
+    } else {
+      // Regional aggregate - sum all counties
+      const allProjections: { [sector: string]: { [year: string]: number } } = {};
+
+      REGION_9_COMPREHENSIVE_DATA.forEach(county => {
+        county.jobProjections.forEach(sector => {
+          if (!allProjections[sector.sectorName]) {
+            allProjections[sector.sectorName] = {};
+          }
+          Object.keys(sector.projections).forEach(year => {
+            if (sector.projections[year] !== null) {
+              allProjections[sector.sectorName][year] =
+                (allProjections[sector.sectorName][year] || 0) + sector.projections[year]!;
+            }
+          });
+        });
+      });
+
+      // Get top 10 sectors by 2033 projection
+      const topSectors = Object.entries(allProjections)
+        .filter(([_, proj]) => proj['2033'])
+        .sort((a, b) => (b[1]['2033'] || 0) - (a[1]['2033'] || 0))
+        .slice(0, 10);
+
+      // Transform to time-series
+      const years = Array.from({length: 10}, (_, i) => 2024 + i);
+      return years.map(year => {
+        const dataPoint: any = { year };
+        topSectors.forEach(([sectorName, projections]) => {
+          const shortName = sectorName.length > 20
+            ? sectorName.substring(0, 17) + '...'
+            : sectorName;
+          dataPoint[shortName] = projections[year.toString()] || null;
+        });
+        return dataPoint;
+      });
+    }
+  };
+
+  const jobProjectionsData = prepareJobProjectionsData();
+  const jobProjectionsSectors = jobProjectionsData.length > 0
+    ? Object.keys(jobProjectionsData[0]).filter(k => k !== 'year')
+    : [];
+
   return (
     <Section
       id="economics"
@@ -420,6 +489,56 @@ export function EconomicTrends({ selectedCounty }: EconomicTrendsProps) {
           <div className="p-6 bg-amber-50 border border-amber-200 rounded">
             <p className="text-amber-900">
               <strong>No wage data available</strong> {selectedCounty ? `for ${selectedCounty}` : 'for this selection'} due to small population size and SDO reporting thresholds.
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* Job Projections by Sector (2024-2033) */}
+      <Card title={`Job Projections by Sector (2024-2033)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {jobProjectionsData.length > 0 && jobProjectionsSectors.length > 0 ? (
+          <>
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-900">
+                <strong>Future Workforce Composition:</strong> Understanding which sectors will grow helps plan for future housing needs.
+                Top 10 sectors by projected 2033 employment shown.
+              </p>
+            </div>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={jobProjectionsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                />
+                <YAxis
+                  label={{ value: 'Jobs (hundreds)', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                {jobProjectionsSectors.slice(0, 5).map((sector, idx) => (
+                  <Line
+                    key={sector}
+                    type="monotone"
+                    dataKey={sector}
+                    stroke={`hsl(${idx * 72}, 70%, 50%)`}
+                    strokeWidth={2}
+                    dot={{ r: 2 }}
+                    connectNulls
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+            <p className="text-xs text-slate-500 mt-4">Source: SDO 2023 Vintage Job Projections by Sector</p>
+            <p className="text-xs text-slate-600 mt-2">
+              <strong>Note:</strong> Showing top 5 of {jobProjectionsSectors.length} projected sectors for clarity.
+              Future housing demand will be driven by growth in these employment sectors.
+            </p>
+          </>
+        ) : (
+          <div className="p-6 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-amber-900">
+              <strong>No job projection data available</strong> {selectedCounty ? `for ${selectedCounty}` : 'for this selection'}.
             </p>
           </div>
         )}

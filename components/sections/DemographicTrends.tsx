@@ -5,7 +5,8 @@ import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
 import { REGION_9_HISTORICAL_DATA } from '@/lib/data/region9-historical';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { REGION_9_COMPREHENSIVE_DATA } from '@/lib/data/region9-comprehensive';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
 interface DemographicTrendsProps {
@@ -90,6 +91,49 @@ export function DemographicTrends({ selectedCounty }: DemographicTrendsProps) {
   };
 
   const historicalTrendData = prepareHistoricalTrendData();
+
+  // Prepare age distribution time-series data
+  const prepareAgeDistributionData = () => {
+    const ageCohorts = ['0-17', '18-24', '25-44', '45-64', '65-74', '75+'];
+
+    if (selectedCounty) {
+      // Single county
+      const countyData = REGION_9_COMPREHENSIVE_DATA.find(c => c.county === selectedCounty);
+      if (!countyData || !countyData.ageDistribution) return [];
+
+      const years = Object.keys(countyData.ageDistribution['0-17'] || {})
+        .filter(year => parseInt(year) >= 2013 && parseInt(year) <= 2033)
+        .sort();
+
+      return years.map(year => {
+        const dataPoint: any = { year: parseInt(year) };
+        ageCohorts.forEach(cohort => {
+          dataPoint[cohort] = countyData.ageDistribution[cohort as keyof typeof countyData.ageDistribution]?.[year] || null;
+        });
+        return dataPoint;
+      });
+    } else {
+      // Regional aggregate
+      const years = Array.from({length: 21}, (_, i) => 2013 + i);
+
+      return years.map(year => {
+        const yearStr = year.toString();
+        const dataPoint: any = { year };
+
+        ageCohorts.forEach(cohort => {
+          const total = REGION_9_COMPREHENSIVE_DATA.reduce((sum, county) => {
+            const value = county.ageDistribution[cohort as '0-17' | '18-24' | '25-44' | '45-64' | '65-74' | '75+']?.[yearStr];
+            return sum + (value || 0);
+          }, 0);
+          dataPoint[cohort] = total || null;
+        });
+
+        return dataPoint;
+      });
+    }
+  };
+
+  const ageDistributionData = prepareAgeDistributionData();
 
   // Custom tooltip formatter
   const formatTooltip = (value: any) => {
@@ -273,6 +317,105 @@ export function DemographicTrends({ selectedCounty }: DemographicTrendsProps) {
           </>
         ) : (
           <p className="text-slate-600">No historical data available for this selection.</p>
+        )}
+      </Card>
+
+      {/* Age Distribution Over Time */}
+      <Card title={`Age Distribution Over Time (2013-2033)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {ageDistributionData.length > 0 ? (
+          <>
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-900">
+                <strong>Demographic Shifts:</strong> Shows aging population trends, youth retention/loss, and retirement migration.
+                Critical for planning accessible housing, senior housing, and family-sized units.
+              </p>
+            </div>
+            <ResponsiveContainer width="100%" height={400}>
+              <AreaChart data={ageDistributionData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                />
+                <YAxis
+                  label={{ value: 'Population', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="75+"
+                  stackId="1"
+                  stroke="#7c3aed"
+                  fill="#7c3aed"
+                  fillOpacity={0.7}
+                  name="75+ years"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="65-74"
+                  stackId="1"
+                  stroke="#a855f7"
+                  fill="#a855f7"
+                  fillOpacity={0.7}
+                  name="65-74 years"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="45-64"
+                  stackId="1"
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.7}
+                  name="45-64 years"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="25-44"
+                  stackId="1"
+                  stroke="#10b981"
+                  fill="#10b981"
+                  fillOpacity={0.7}
+                  name="25-44 years"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="18-24"
+                  stackId="1"
+                  stroke="#f59e0b"
+                  fill="#f59e0b"
+                  fillOpacity={0.7}
+                  name="18-24 years"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="0-17"
+                  stackId="1"
+                  stroke="#ef4444"
+                  fill="#ef4444"
+                  fillOpacity={0.7}
+                  name="0-17 years"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="p-2 bg-purple-50 border border-purple-200 rounded">
+                <p className="text-xs font-semibold text-purple-900">SENIORS (65+)</p>
+                <p className="text-xs text-purple-700 mt-1">Growing share - accessible housing need</p>
+              </div>
+              <div className="p-2 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-xs font-semibold text-blue-900">WORKING AGE (25-64)</p>
+                <p className="text-xs text-blue-700 mt-1">Core workforce - family housing demand</p>
+              </div>
+              <div className="p-2 bg-red-50 border border-red-200 rounded">
+                <p className="text-xs font-semibold text-red-900">YOUTH (0-24)</p>
+                <p className="text-xs text-red-700 mt-1">Declining share may indicate out-migration</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-4">Source: SDO 2023 Vintage Age Distribution Estimates and Projections</p>
+          </>
+        ) : (
+          <p className="text-slate-600">No age distribution data available for this selection.</p>
         )}
       </Card>
 
