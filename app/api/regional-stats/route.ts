@@ -2,24 +2,27 @@ import { NextResponse } from 'next/server';
 import { REGION_9_AGGREGATE_STATS, REGION_9_COUNTIES_DATA } from '@/lib/data/region9-constants';
 
 export async function GET() {
-  // Calculate additional regional statistics
+  // Calculate additional regional statistics (with null handling)
   const totalLowIncome = REGION_9_COUNTIES_DATA.reduce((sum, county) => {
-    return sum + county.ami.veryLow30 + county.ami.veryLow50 + county.ami.low80;
+    return sum + (county.ami.veryLow30 || 0) + (county.ami.veryLow50 || 0) + (county.ami.low80 || 0);
   }, 0);
 
   const totalAmiHouseholds = REGION_9_COUNTIES_DATA.reduce((sum, county) => {
     return sum +
-      county.ami.veryLow30 + county.ami.veryLow50 + county.ami.low80 +
-      county.ami.moderate120 + county.ami.middle140 + county.ami.upper140Plus;
+      (county.ami.veryLow30 || 0) + (county.ami.veryLow50 || 0) + (county.ami.low80 || 0) +
+      (county.ami.moderate120 || 0) + (county.ami.middle140 || 0) + (county.ami.upper140Plus || 0);
   }, 0);
 
   const totalSeasonalUnits = REGION_9_COUNTIES_DATA.reduce((sum, county) => {
     return sum + (county.seasonalRecreational || 0);
   }, 0);
 
-  const averageAffordabilityRatio = REGION_9_COUNTIES_DATA.reduce((sum, county) => {
-    return sum + (county.medianHomeValue / county.medianIncome);
-  }, 0) / REGION_9_COUNTIES_DATA.length;
+  const affordabilityRatios = REGION_9_COUNTIES_DATA
+    .filter(c => c.medianHomeValue && c.medianIncome)
+    .map(c => c.medianHomeValue! / c.medianIncome!);
+  const averageAffordabilityRatio = affordabilityRatios.length > 0
+    ? affordabilityRatios.reduce((sum, ratio) => sum + ratio, 0) / affordabilityRatios.length
+    : 0;
 
   const regionalStats = {
     ...REGION_9_AGGREGATE_STATS,
@@ -29,7 +32,6 @@ export async function GET() {
     seasonalUnitPercentage: ((totalSeasonalUnits / REGION_9_AGGREGATE_STATS.totalHousingUnits) * 100).toFixed(1),
     averageAffordabilityRatio: averageAffordabilityRatio.toFixed(2),
     projectedPopulationGrowth: REGION_9_AGGREGATE_STATS.totalPopulation2033Projection - REGION_9_AGGREGATE_STATS.totalPopulation2023,
-    projectedHouseholdGrowth: REGION_9_AGGREGATE_STATS.totalHouseholds2033Projection - REGION_9_AGGREGATE_STATS.totalHouseholds2023,
     housingGap: REGION_9_AGGREGATE_STATS.totalHouseholds2023 - REGION_9_AGGREGATE_STATS.totalOccupiedUnits
   };
 

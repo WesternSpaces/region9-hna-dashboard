@@ -19,18 +19,22 @@ export async function GET(
     );
   }
 
-  // Calculate additional insights
-  const lowIncomeTotal = countyData.ami.veryLow30 + countyData.ami.veryLow50 + countyData.ami.low80;
+  // Calculate additional insights (with null handling)
+  const lowIncomeTotal = (countyData.ami.veryLow30 || 0) + (countyData.ami.veryLow50 || 0) + (countyData.ami.low80 || 0);
   const totalAmiHouseholds =
-    countyData.ami.veryLow30 + countyData.ami.veryLow50 + countyData.ami.low80 +
-    countyData.ami.moderate120 + countyData.ami.middle140 + countyData.ami.upper140Plus;
+    (countyData.ami.veryLow30 || 0) + (countyData.ami.veryLow50 || 0) + (countyData.ami.low80 || 0) +
+    (countyData.ami.moderate120 || 0) + (countyData.ami.middle140 || 0) + (countyData.ami.upper140Plus || 0);
 
   const insights = {
-    affordabilityRatio: (countyData.medianHomeValue / countyData.medianIncome).toFixed(2),
-    lowIncomePercentage: ((lowIncomeTotal / totalAmiHouseholds) * 100).toFixed(1),
-    populationGrowthRate: (((countyData.population2033Projection - countyData.population2023) / countyData.population2023) * 100).toFixed(1),
-    housingGap: countyData.households2023 - countyData.occupiedUnits,
-    seasonalUnitPercentage: countyData.seasonalRecreational
+    affordabilityRatio: countyData.medianHomeValue && countyData.medianIncome
+      ? (countyData.medianHomeValue / countyData.medianIncome).toFixed(2)
+      : 'N/A',
+    lowIncomePercentage: totalAmiHouseholds > 0 ? ((lowIncomeTotal / totalAmiHouseholds) * 100).toFixed(1) : 'N/A',
+    populationGrowthRate: countyData.population2033Projection && countyData.population2023
+      ? (((countyData.population2033Projection - countyData.population2023) / countyData.population2023) * 100).toFixed(1)
+      : 'N/A',
+    housingGap: (countyData.households2023 || 0) - (countyData.occupiedUnits || 0),
+    seasonalUnitPercentage: countyData.seasonalRecreational && countyData.totalHousingUnits
       ? ((countyData.seasonalRecreational / countyData.totalHousingUnits) * 100).toFixed(1)
       : 'N/A'
   };

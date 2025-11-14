@@ -8,30 +8,30 @@ export async function GET(request: Request) {
 
   let counties = [...REGION_9_COUNTIES_DATA];
 
-  // Apply filters
+  // Apply filters (with null handling)
   if (filter === 'highVacancy') {
     const minVacancy = parseFloat(searchParams.get('minVacancy') || '20');
-    counties = counties.filter(c => c.vacancyRate >= minVacancy);
+    counties = counties.filter(c => (c.vacancyRate || 0) >= minVacancy);
   }
 
   if (filter === 'lowIncome') {
     counties = counties.filter(c => {
-      const lowIncomeTotal = c.ami.veryLow30 + c.ami.veryLow50 + c.ami.low80;
-      const totalHouseholds = c.ami.veryLow30 + c.ami.veryLow50 + c.ami.low80 +
-                              c.ami.moderate120 + c.ami.middle140 + c.ami.upper140Plus;
-      return (lowIncomeTotal / totalHouseholds) > 0.40; // >40% low-income
+      const lowIncomeTotal = (c.ami.veryLow30 || 0) + (c.ami.veryLow50 || 0) + (c.ami.low80 || 0);
+      const totalHouseholds = (c.ami.veryLow30 || 0) + (c.ami.veryLow50 || 0) + (c.ami.low80 || 0) +
+                              (c.ami.moderate120 || 0) + (c.ami.middle140 || 0) + (c.ami.upper140Plus || 0);
+      return totalHouseholds > 0 && (lowIncomeTotal / totalHouseholds) > 0.40; // >40% low-income
     });
   }
 
-  // Apply sorting
+  // Apply sorting (with null handling)
   if (sortBy === 'population') {
-    counties.sort((a, b) => b.population2023 - a.population2023);
+    counties.sort((a, b) => (b.population2023 || 0) - (a.population2023 || 0));
   } else if (sortBy === 'vacancy') {
-    counties.sort((a, b) => b.vacancyRate - a.vacancyRate);
+    counties.sort((a, b) => (b.vacancyRate || 0) - (a.vacancyRate || 0));
   } else if (sortBy === 'affordability') {
     counties.sort((a, b) => {
-      const ratioA = a.medianHomeValue / a.medianIncome;
-      const ratioB = b.medianHomeValue / b.medianIncome;
+      const ratioA = (a.medianHomeValue && a.medianIncome) ? a.medianHomeValue / a.medianIncome : 0;
+      const ratioB = (b.medianHomeValue && b.medianIncome) ? b.medianHomeValue / b.medianIncome : 0;
       return ratioB - ratioA;
     });
   }
