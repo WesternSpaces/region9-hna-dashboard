@@ -4,6 +4,7 @@ import { Section } from '../ui/Section';
 import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
+import { REGION_9_HISTORICAL_DATA } from '@/lib/data/region9-historical';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
@@ -51,6 +52,44 @@ export function DemographicTrends({ selectedCounty }: DemographicTrendsProps) {
     county: county.county.replace(' County', ''),
     size: county.avgHouseholdSize,
   }));
+
+  // Prepare historical trend data for single county or regional aggregate
+  const prepareHistoricalTrendData = () => {
+    if (selectedCounty) {
+      // Single county - show that county's historical trend
+      const countyHistorical = REGION_9_HISTORICAL_DATA.find(c => c.county === selectedCounty);
+      if (!countyHistorical) return [];
+
+      const years = Object.keys(countyHistorical.population).filter(year =>
+        parseInt(year) >= 2013 && parseInt(year) <= 2033
+      ).sort();
+
+      return years.map(year => ({
+        year: parseInt(year),
+        Population: countyHistorical.population[year],
+        Households: countyHistorical.households[year],
+      })).filter(d => d.Population !== null || d.Households !== null);
+    } else {
+      // Regional aggregate - sum all counties
+      const years = Array.from({length: 21}, (_, i) => 2013 + i);
+      return years.map(year => {
+        const yearStr = year.toString();
+        const totalPop = REGION_9_HISTORICAL_DATA.reduce((sum, county) =>
+          sum + (county.population[yearStr] || 0), 0
+        );
+        const totalHH = REGION_9_HISTORICAL_DATA.reduce((sum, county) =>
+          sum + (county.households[yearStr] || 0), 0
+        );
+        return {
+          year,
+          Population: totalPop || null,
+          Households: totalHH || null,
+        };
+      }).filter(d => d.Population !== null || d.Households !== null);
+    }
+  };
+
+  const historicalTrendData = prepareHistoricalTrendData();
 
   // Custom tooltip formatter
   const formatTooltip = (value: any) => {
@@ -178,6 +217,64 @@ export function DemographicTrends({ selectedCounty }: DemographicTrendsProps) {
           <p className="text-xs text-slate-500 mt-2">Source: ACS 2019-2023 5-year estimates</p>
         </Card>
       </div>
+
+      {/* Historical Trends - Full Width */}
+      <Card title={`Historical Trends (2013-2033)${selectedCounty ? ` - ${selectedCounty}` : ' - Region 9'}`} className="mt-6" highlight>
+        {historicalTrendData.length > 0 ? (
+          <>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={historicalTrendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                />
+                <YAxis
+                  yAxisId="left"
+                  label={{ value: 'Population', angle: -90, position: 'insideLeft' }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  label={{ value: 'Households', angle: 90, position: 'insideRight' }}
+                />
+                <Tooltip formatter={formatTooltip} />
+                <Legend />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="Population"
+                  stroke="#2563eb"
+                  strokeWidth={3}
+                  dot={{ r: 3 }}
+                  name="Population"
+                  connectNulls
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="Households"
+                  stroke="#64748b"
+                  strokeWidth={3}
+                  dot={{ r: 3 }}
+                  name="Households"
+                  connectNulls
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-sm text-blue-900">
+                <strong>Historical Data (2013-2023):</strong> SDO actual estimates and observations.
+                <strong className="ml-3">Projections (2024-2033):</strong> SDO forecast based on demographic trends.
+                {selectedCounty && ` Showing ${selectedCounty} specific trends over time.`}
+              </p>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Source: SDO 2023 Vintage Population & Household Estimates and Projections</p>
+          </>
+        ) : (
+          <p className="text-slate-600">No historical data available for this selection.</p>
+        )}
+      </Card>
 
       {/* Key Insights */}
       <Card title="Key Insights" className="mt-6" highlight>

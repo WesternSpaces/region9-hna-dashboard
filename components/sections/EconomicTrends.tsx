@@ -4,7 +4,8 @@ import { Section } from '../ui/Section';
 import { Card } from '../ui/Card';
 import { StatCard } from '../ui/StatCard';
 import { REGION_9_COUNTIES_DATA, REGION_9_AGGREGATE_STATS } from '@/lib/data/region9-constants';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { REGION_9_HISTORICAL_DATA } from '@/lib/data/region9-historical';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { filterCountyData, getFilterDisplayName } from '@/lib/utils/filterData';
 
 interface EconomicTrendsProps {
